@@ -526,7 +526,6 @@ public class Vessel : Entity
 		SetSolid(false);
 		_gfxTransform.localPosition = new Vector3(_gfxTransform.localPosition.x, _gfxTransform.localPosition.y, -128f);
 		_isPlayingJumpAnimation = true;
-            GameHaptics.Play(HapticEvent.Jump);
 		_vesselAnimator.Play("VesselJump");
 		_vesselAnimator.CurrentClip.fps = 22.5f;
 		_vesselAnimator.gameObject.transform.localScale = Vector3.one * 0.65f;
@@ -705,7 +704,10 @@ public class Vessel : Entity
 
 	private void Vibrate()
 	{
-        GameHaptics.Play(HapticEvent.Damage);
+		if (!_isDead || GamePreferences.Vibration == VibrationMode.Original)
+		{
+			GameHaptics.Play(HapticEvent.Damage);
+		}
 	}
 
 	private void Die()
@@ -718,6 +720,10 @@ public class Vessel : Entity
 			}
 			DisableParticles();
 			_isDead = true;
+			if (!World.isInMatrixMode || GamePreferences.Vibration == VibrationMode.Enhanced)
+			{
+				GameHaptics.Play(HapticEvent.Death);
+			}
 			SetSolid(false);
 			World.skillMeter.NotifyOfDeath();
 			if (World.isInMatrixMode)
@@ -728,7 +734,6 @@ public class Vessel : Entity
 			}
 			else
 			{
-				Vibrate();
 				ObjectPool.instance.GetObjectForType<Shockwave>().Play("Big", _gfxTransform.position, 0.5f, 20);
 				ObjectPool.instance.GetObjectForType<Particle>().Play("-deathexplosion", _gfxTransform.position, 1f);
 			}

@@ -373,7 +373,14 @@ public class UserSettings
 
 	public void SetVibration(bool value)
 	{
-        GamePreferences.Vibration = value ? VibrationMode.Original : VibrationMode.Disabled;
+		if (!value)
+		{
+			GamePreferences.Vibration = VibrationMode.Disabled;
+		}
+		else if (GamePreferences.Vibration == VibrationMode.Disabled)
+		{
+			GamePreferences.Vibration = VibrationMode.Original;
+		}
 	}
 
 	public int GetHighestPlayedLevel(LevelPack pack)

@@ -76,12 +76,12 @@ public class IngameOptionScreen : MonoBehaviour
     {
         if(IsInMainMenu)
         {
-            Position(Title,290);
-            // Separate the action buttons from the first row's title and center the list.
-            Position(FlipperSound,107); Position(FlipperMusic,47); Position(FlipperPostResults,-13);
-            Position(((OptionScreen)this).FlipperDifficulty,-73);
-            Position(FlipperTimer,-133); Position(FlipperLanguage,-193);
-            Position(BtnCalibrateControls,238); Position(BtnSelectVessel,183); Position(BtnGoBack,-280);
+            Position(Title,243.5f);
+            // Center the tighter rows and action buttons with clear gaps between groups.
+            Position(FlipperSound,95); Position(FlipperMusic,42); Position(FlipperPostResults,-11);
+            Position(((OptionScreen)this).FlipperDifficulty,-64);
+            Position(FlipperTimer,-117); Position(FlipperLanguage,-170);
+            Position(BtnCalibrateControls,202.5f); Position(BtnSelectVessel,158.5f); Position(BtnGoBack,-233.5f);
         }
         else
         {

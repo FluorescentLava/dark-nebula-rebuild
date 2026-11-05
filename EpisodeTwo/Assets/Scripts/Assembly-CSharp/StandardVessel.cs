@@ -93,6 +93,10 @@ public class StandardVessel : Vessel
 
 	private Renderer _gfxShieldRenderer;
 
+	private bool _portalHidden;
+
+	private readonly List<KeyValuePair<Renderer, bool>> _portalRendererStates = new List<KeyValuePair<Renderer, bool>>();
+
 	private Transform _cameraTransform;
 
 	private CameraFollow _cameraFollow;
@@ -229,6 +233,30 @@ public class StandardVessel : Vessel
 		_anim.transform.localPosition = _animPos;
 		_animShield.transform.localPosition = _animShieldPos;
 		_animEnergy.transform.localPosition = _animEnergyPos;
+		SetPortalHidden(false);
+	}
+
+	public bool IsPortalHidden => _portalHidden;
+
+	public void SetPortalHidden(bool hidden)
+	{
+		if (_portalHidden == hidden) return;
+		_portalHidden = hidden;
+		if (hidden)
+		{
+			// Keep the original stone-ring disappearance independent of transparent sorting.
+			// Update still owns the normal damage flash and shield visibility.
+			if (Gfx == null) return;
+			foreach (Renderer renderer in Gfx.GetComponentsInChildren<Renderer>(true))
+			{
+				_portalRendererStates.Add(new KeyValuePair<Renderer, bool>(renderer, renderer.forceRenderingOff));
+				renderer.forceRenderingOff = true;
+			}
+			return;
+		}
+		foreach (var state in _portalRendererStates)
+			if (state.Key != null) state.Key.forceRenderingOff = state.Value;
+		_portalRendererStates.Clear();
 	}
 
 	public override void EndMorph()
@@ -238,6 +266,7 @@ public class StandardVessel : Vessel
 
 	private void OnDisable()
 	{
+		SetPortalHidden(false);
 		_anim = null;
 		_animShield = null;
 		_animEnergy = null;
@@ -598,7 +627,6 @@ public class StandardVessel : Vessel
 		if (skinType != VesselSkinType.Matrix)
 		{
 			_isPlayingJumpAnimation = true;
-            GameHaptics.Play(HapticEvent.Jump);
 			_anim.Play("VesselJump");
 			_anim.gameObject.transform.localScale = Vector3.one * 0.65f;
 		}
@@ -769,6 +797,10 @@ public class StandardVessel : Vessel
 			return;
 		}
 		_isDead = true;
+		if (!World.isInMatrixMode || GamePreferences.Vibration == VibrationMode.Enhanced)
+		{
+			GameHaptics.Play(HapticEvent.Death);
+		}
 		SetSolid(false);
 		DarkNebulaMetrics.Died(World.levelNum, _transform.position, UserSettings.I.expert);
 		World.skillMeter.NotifyOfDeath();
@@ -781,7 +813,6 @@ public class StandardVessel : Vessel
 		}
 		else
 		{
-			Vibrate();
 			if (crashInWater)
 			{
 				ObjectPool.instance.GetObjectForType<WaterSplashEntity>().Play(_gfxPuckRenderer.transform.position);
@@ -801,7 +832,10 @@ public class StandardVessel : Vessel
 
 	private void Vibrate()
 	{
-        GameHaptics.Play(HapticEvent.Damage);
+		if (!_isDead || GamePreferences.Vibration == VibrationMode.Original)
+		{
+			GameHaptics.Play(HapticEvent.Damage);
+		}
 	}
 
 	private void DieComplete()

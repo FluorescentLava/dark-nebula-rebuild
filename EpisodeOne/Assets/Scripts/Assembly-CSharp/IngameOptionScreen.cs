@@ -71,11 +71,19 @@ public class IngameOptionScreen : MonoBehaviour
     {
         if(IsInMainMenu)
         {
-            // Leave room above each framed row for its label and center the complete list.
-            Position(FlipperSound,220); Position(FlipperMusic,156); Position(FlipperVibration,92);
-            Position(((OptionScreen)this).FlipperDifficulty,28);
-            Position(FlipperTimer,-36); Position(FlipperLanguage,-100);
-            Position(BtnCalibrateControls,-167); Position(BtnSelectVessel,-223); Position(BtnGoBack,-279);
+            // Center the tighter rows and action buttons with clear gaps between groups.
+            Position(FlipperSound,198); Position(FlipperMusic,139); Position(FlipperVibration,80);
+            Position(((OptionScreen)this).FlipperDifficulty,21);
+            Position(FlipperTimer,-38); Position(FlipperLanguage,-97);
+            Position(BtnCalibrateControls,-131); Position(BtnSelectVessel,-179); Position(BtnGoBack,-233);
+            // Preserve the tighter title position when the language refreshes.
+            foreach(GameObject row in new[]{FlipperSound,FlipperMusic,FlipperVibration,((OptionScreen)this).FlipperDifficulty,FlipperTimer,FlipperLanguage})
+            {
+                DynamicFont title=row.GetComponent<FlipperButton>().Title;
+                Vector3 position=title.transform.localPosition;position.y=27f;
+                title.SetOriginalPos(position);
+                title.Refresh();
+            }
         }
         else
         {

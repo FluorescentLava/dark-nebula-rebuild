@@ -2,6 +2,16 @@ name: Build iOS
 
 on:
   workflow_dispatch:
+    inputs:
+      project:
+        description: Project to build
+        type: choice
+        required: true
+        default: both
+        options:
+          - both
+          - EpisodeOne
+          - EpisodeTwo
 
 permissions:
   contents: read
@@ -20,7 +30,7 @@ jobs:
       # Use one Unity license seat at a time.
       max-parallel: 1
       matrix:
-        project: [EpisodeOne, EpisodeTwo]
+        project: ${{ fromJSON(inputs.project == 'both' && '["EpisodeOne","EpisodeTwo"]' || format('["{0}"]', inputs.project)) }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -31,7 +41,8 @@ jobs:
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          # Set UNITY_LICENSE for Personal or UNITY_SERIAL for Pro.
+          # Personal on macOS uses UNITY_EMAIL and UNITY_PASSWORD for online activation.
+          # A licensed Pro account can additionally use UNITY_SERIAL or UNITY_LICENSE.
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:

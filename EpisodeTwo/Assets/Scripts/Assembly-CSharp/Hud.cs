@@ -313,7 +313,12 @@ public class Hud : MonoBehaviour
 
 	public void Pause()
 	{
-        GameHaptics.Cancel();
+		Pause(true);
+	}
+
+	private void Pause(bool cancelHaptics)
+	{
+		if (cancelHaptics) GameHaptics.Cancel();
 		Time.timeScale = 0f;
 		state = State.Pause;
 		if (!(_pauseScreen == null))
@@ -432,7 +437,8 @@ public class Hud : MonoBehaviour
 
 	public static void ShowGameOverScreen()
 	{
-		Instance.Pause();
+		// The game-over transition must let the death feedback finish.
+		Instance.Pause(false);
 		_pauseScreen.gameObject.SetActive(false);
 		_gameOverScreen.Show();
 	}

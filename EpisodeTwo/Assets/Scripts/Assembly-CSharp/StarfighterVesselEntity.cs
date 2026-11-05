@@ -295,6 +295,10 @@ public class StarfighterVesselEntity : Vessel
 
 	private void Die()
 	{
+		if (GamePreferences.Vibration == VibrationMode.Enhanced)
+		{
+			GameHaptics.Play(HapticEvent.Death);
+		}
 		ObjectPool.instance.GetObjectForType<Particle>().Play("_explosion", base.transform.position);
 		Reset();
 		currDeathPauseFrames = deathPauseFrames;

@@ -57,6 +57,8 @@ public class TempleEffect : Task
 	private void OnActivate()
 	{
 		time = 0f;
+		StandardVessel vessel = World.vessel as StandardVessel;
+		if (vessel != null) vessel.SetPortalHidden(true);
 	}
 
 	private void SetupCamera()

@@ -25,6 +25,17 @@ public class FlipperButtonMultipleValues : MonoBehaviour
 
 	private bool _enabled = true;
 
+    private bool spacingAnimated;
+    private void OnDisable()
+    {
+        StopCoroutine("AnimateSpacing");
+        if (spacingAnimated)
+        {
+            Value.GetComponent<SimpleText>().SetAnimatedSpacing(originalSpacing, originalSpacing);
+            spacingAnimated = false;
+        }
+    }
+
 	public bool Enabled
 	{
 		get
@@ -103,15 +114,17 @@ public class FlipperButtonMultipleValues : MonoBehaviour
 
 	private IEnumerator AnimateSpacing()
 	{
+        spacingAnimated = true;
 		float begin = Time.realtimeSinceStartup;
 		float duration = 0.2f;
 		while (begin + duration > Time.realtimeSinceStartup)
 		{
 			float elapsed = Time.realtimeSinceStartup - begin;
 			float percent = elapsed / duration;
-			Value.GetComponent<SimpleText>().Spacing = -19f + 12f * percent;
+            Value.GetComponent<SimpleText>().SetAnimatedSpacing(zeroSpacing + (originalSpacing - zeroSpacing) * percent, originalSpacing);
 			yield return null;
 		}
-		Value.GetComponent<SimpleText>().Spacing = -7f;
+        Value.GetComponent<SimpleText>().SetAnimatedSpacing(originalSpacing, originalSpacing);
+        spacingAnimated = false;
 	}
 }

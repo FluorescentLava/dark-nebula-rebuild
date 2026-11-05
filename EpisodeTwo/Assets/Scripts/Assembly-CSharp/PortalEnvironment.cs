@@ -46,6 +46,9 @@ public sealed class PortalEnvironment : MonoBehaviour
                 else forest.Add(renderer);
             }
         }
+        Camera portalCamera = World.cameraFollow == null ? null : World.cameraFollow.GetComponent<Camera>();
+        if (portalCamera != null && portalCamera.aspect < LegacyScreenFit.ReferenceAspect - .001f
+            && GetComponent<PortalJungleUnderlay>() == null) gameObject.AddComponent<PortalJungleUnderlay>();
     }
 
     void Approach() { approaching = true; }

@@ -14,6 +14,16 @@ public class SimpleText : Entity
 		}
 	}
 
+    // The bitmap font carries permanent tracking. CJK keeps its fullwidth
+    // resting layout and consumes only the transient part of a button animation.
+    public float AnimationSpacingOffset { get; private set; }
+
+    public void SetAnimatedSpacing(float spacing, float restingSpacing)
+    {
+        AnimationSpacingOffset = spacing - restingSpacing;
+        Spacing = spacing;
+    }
+
 	public float Spacing
 	{
 		get

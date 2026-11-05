@@ -86,6 +86,19 @@ public class UserSettings
 		settings.Set("HasPlayedIntroMovie", value);
 	}
 
+	// Older rebuilds set HasPlayedIntroMovie before attempting a missing file.
+	// This versioned marker records an actual restored playback or explicit skip.
+	public bool GetHasVerifiedIntroMovieV1()
+	{
+		return settings.GetBool("HasVerifiedIntroMovieV1");
+	}
+
+	public void SetHasVerifiedIntroMovieV1()
+	{
+		settings.Set("HasVerifiedIntroMovieV1", true);
+		SetHasPlayedIntroMovie(true);
+	}
+
 	public bool GetEnforceInternet()
 	{
 		if (GetIsPayingUser())

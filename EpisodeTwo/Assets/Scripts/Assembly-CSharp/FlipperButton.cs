@@ -31,7 +31,17 @@ public class FlipperButton : MonoBehaviour
     public int CurrentChoice { get { return _choiceIndex; } }
 
     private void OnEnable() { GamePreferences.Changed += RefreshLabels; RefreshLabels(); }
-    private void OnDisable() { GamePreferences.Changed -= RefreshLabels; }
+    private bool spacingAnimated;
+    private void OnDisable()
+    {
+        GamePreferences.Changed -= RefreshLabels;
+        StopCoroutine("AnimateSpacing");
+        if (spacingAnimated)
+        {
+            Value.GetComponent<SimpleText>().SetAnimatedSpacing(originalSpacing, originalSpacing);
+            spacingAnimated = false;
+        }
+    }
     public void InitChoices(int value, string[] names, string title)
     {
         _choices=names;
@@ -139,24 +149,23 @@ public class FlipperButton : MonoBehaviour
             RefreshLabels();
             if(EventValueChanged!=null) EventValueChanged(_value);
         }
-        if(!GamePreferences.Chinese)
-        {
-            StopCoroutine("AnimateSpacing");
-            StartCoroutine("AnimateSpacing");
-        }
+        StopCoroutine("AnimateSpacing");
+        StartCoroutine("AnimateSpacing");
     }
 
 	private IEnumerator AnimateSpacing()
 	{
+        spacingAnimated = true;
 		float begin = Time.realtimeSinceStartup;
 		float duration = 0.2f;
 		while (begin + duration > Time.realtimeSinceStartup)
 		{
 			float elapsed = Time.realtimeSinceStartup - begin;
 			float percent = elapsed / duration;
-			Value.GetComponent<SimpleText>().Spacing = -19f + 12f * percent;
+            Value.GetComponent<SimpleText>().SetAnimatedSpacing(zeroSpacing + (originalSpacing - zeroSpacing) * percent, originalSpacing);
 			yield return null;
 		}
-		Value.GetComponent<SimpleText>().Spacing = -7f;
+        Value.GetComponent<SimpleText>().SetAnimatedSpacing(originalSpacing, originalSpacing);
+        spacingAnimated = false;
 	}
 }

@@ -33,6 +33,8 @@ public class MainMenuScreen : MonoBehaviour
 
 	private static bool _initialized;
 
+	private static bool _introAttemptedThisSession;
+
 	private bool _isEnabled = true;
 
 	private void Awake()
@@ -75,14 +77,15 @@ public class MainMenuScreen : MonoBehaviour
 		_calibrateScreen.EventGoBack += onCloseCalibrateScreen;
 		_alertScreen = GetComponentInChildren<Alert>();
 		_alertScreen.gameObject.SetActive(false);
-		if (!UserSettings.I.GetHasPlayedIntroMovie())
-		{
-			UserSettings.I.SetHasPlayedIntroMovie(true);
-			PlayIntro();
-		}
         var rows=gameObject.AddComponent<MenuRowLayout>();
         rows.Rows=new[]{btn0,btn1,btn2,btn3,btn4};
-		SetEnabled(true);
+		if (!_introAttemptedThisSession && !UserSettings.I.GetHasVerifiedIntroMovieV1())
+		{
+			_introAttemptedThisSession = true;
+			SetEnabled(false);
+			StartCoroutine(PlayIntro());
+		}
+		else SetEnabled(true);
 	}
 
 	private void SetEnabled(bool on)
@@ -267,17 +270,15 @@ public class MainMenuScreen : MonoBehaviour
 		StartCoroutine(LoadLevel("Credits"));
 	}
 
-	private void PlayIntro()
+	private IEnumerator PlayIntro()
 	{
-		string text = "intro.mp4";
-		Debug.Log("Play " + text);
-		try
-		{
-			Handheld.PlayFullScreenMovie(text, Color.black, FullScreenMovieControlMode.CancelOnInput);
-		}
-		catch (Exception)
-		{
-		}
+		StoryMoviePlayer.Playback movie = StoryMoviePlayer.Play(this, StoryMoviePlayer.Intro);
+		while (!movie.IsDone) yield return null;
+		if (movie.WasHandled) UserSettings.I.SetHasVerifiedIntroMovieV1();
+		// A skip must not also press a menu row or open the quit dialog.
+		while (StoryMoviePlayer.SkipInputHeld) yield return null;
+		yield return null;
+		if (isActiveAndEnabled) SetEnabled(true);
 	}
 
 	private void onEpisodeTwo(SimpleButton source)

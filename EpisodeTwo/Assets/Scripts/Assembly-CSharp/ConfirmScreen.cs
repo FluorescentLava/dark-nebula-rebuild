@@ -2,6 +2,27 @@ using UnityEngine;
 
 public class ConfirmScreen : SimpleScreen
 {
+	Renderer backdrop;
+	Vector3 backdropScale, backdropPosition;
+
+	private void LateUpdate()
+	{
+		MenuContentFit layout = GetComponent<MenuContentFit>();
+		if (layout == null || layout.Camera == null) return;
+		if (backdrop == null)
+		{
+			Transform background = transform.Find("Background");
+			if (background == null) return;
+			backdrop = background.GetComponent<Renderer>();
+			if (backdrop == null) return;
+			backdropScale = background.localScale;
+			backdropPosition = background.localPosition;
+		}
+		// Fit the original modal backdrop to the complete HUD camera view.
+		// MenuContentFit keeps the title and buttons at their authored size.
+		LegacyScreenFit.CoverBackdrop(layout.Camera, backdrop, backdropScale, backdropPosition);
+	}
+
 	private string _yesID = "YES";
 
 	private string _noID = "NO";

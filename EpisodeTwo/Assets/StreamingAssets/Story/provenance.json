@@ -1,0 +1,21 @@
+{
+  "sourcePackage": "DarkNebula2_v1.1_os30.ipa",
+  "sourceUrl": "https://archive.org/download/ios_3_ipa/DarkNebula2_v1.1_os30.ipa",
+  "sourcePackageSha256": "0f781518b2864bfd9119e5c0313918edd8973f3ef838e725460b0c4277b466c0",
+  "sourceType": "Third-party historical preservation upload; official package signature not verified",
+  "files": [
+    {
+      "filename": "intro.m4v",
+      "originalPath": "Payload/DarkNebula2.app/intro.m4v",
+      "bytes": 11268477,
+      "sha256": "0d88da32a236a3bd7c7a463d0767544fa2ab3452e27ed6921e224671a975e6e3"
+    },
+    {
+      "filename": "extro.m4v",
+      "originalPath": "Payload/DarkNebula2.app/extro.m4v",
+      "bytes": 12787311,
+      "sha256": "3e6988ee50d46b39cb0c7ea718f82af58fd32503e15c63f8d23d31c6df157e8a"
+    }
+  ],
+  "transcoded": false
+}

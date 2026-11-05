@@ -28,7 +28,7 @@ public sealed class CjkTextRenderer : MonoBehaviour
     Vector3 lastScale, lastCharScale;
     TextAnchor lastAnchor;
     tk2dFontData lastFont;
-    float lastSpacing, lastLineSpacing;
+    float lastSpacing, lastLineSpacing, lastAnimationSpacing;
     bool active, dirty = true, usesLiteralFont, usesLeaderboardFont;
     int glyphGeneration = -1;
     public bool UsesLiteralFont { get { return active && usesLiteralFont; } }
@@ -121,17 +121,19 @@ public sealed class CjkTextRenderer : MonoBehaviour
         if (!active) { originalMesh = meshFilter.sharedMesh; originalMaterial = meshRenderer.sharedMaterial; }
         Vector3 characterScale = label.charScale;
         float spacing = label.spacing, lineSpacing = label.lineSpacing;
+        SimpleText simpleText = label.GetComponent<SimpleText>();
+        float animationSpacing = simpleText != null ? simpleText.AnimationSpacingOffset : 0f;
         Color top = label.color, bottom = label.useGradient ? label.color2 : top;
         // Preserve the original vertex tint; Unity converts the sRGB ramp texture.
-        bool rebuilt = dirty || lastText != label.text || lastFont != label.font || lastAnchor != label.anchor || lastColor != top || lastColor2 != bottom || lastScale != label.scale || lastCharScale != characterScale || lastSpacing != spacing || lastLineSpacing != lineSpacing || usesLiteralFont != literal || glyphGeneration != generation;
+        bool rebuilt = dirty || lastText != label.text || lastFont != label.font || lastAnchor != label.anchor || lastColor != top || lastColor2 != bottom || lastScale != label.scale || lastCharScale != characterScale || lastSpacing != spacing || lastLineSpacing != lineSpacing || lastAnimationSpacing != animationSpacing || usesLiteralFont != literal || glyphGeneration != generation;
         if (rebuilt)
         {
             usesLiteralFont = literal;
             usesLeaderboardFont = literal || label.font.name == "FontInputdata";
-            Build(top, bottom, characterScale, spacing, lineSpacing);
+            Build(top, bottom, characterScale, animationSpacing, lineSpacing);
             lastText = label.text; lastFont = label.font; lastAnchor = label.anchor;
             lastColor = top; lastColor2 = bottom; lastScale = label.scale; lastCharScale = characterScale;
-            lastSpacing = spacing; lastLineSpacing = lineSpacing; glyphGeneration = generation; dirty = false;
+            lastSpacing = spacing; lastLineSpacing = lineSpacing; lastAnimationSpacing = animationSpacing; glyphGeneration = generation; dirty = false;
         }
         Texture2D gradient = label.font.textureGradients ? label.font.gradientTexture : null;
         int gradientIndex = label.textureGradient, gradientCount = label.font.gradientCount;
@@ -150,7 +152,7 @@ public sealed class CjkTextRenderer : MonoBehaviour
         active = true;
     }
     CjkFontAtlas.Glyph Glyph(char c) { return usesLiteralFont ? CjkFontAtlas.GetLiteralGlyph(c) : CjkFontAtlas.GetGlyph(c, usesLeaderboardFont); }
-    void Build(Color top, Color bottom, Vector3 characterScale, float spacing, float lineSpacing)
+    void Build(Color top, Color bottom, Vector3 characterScale, float animationSpacing, float lineSpacing)
     {
         if (translatedMesh == null) translatedMesh = new Mesh() { name = "Chinese label", hideFlags = HideFlags.DontSave };
         tk2dFontChar reference = null;
@@ -176,7 +178,8 @@ public sealed class CjkTextRenderer : MonoBehaviour
             - (1f - characterScale.y) * referenceHeight * .1f;
         float cellHeight = label.font.lineHeight + lineSpacing;
         float lineHeight = label.text.IndexOf('\n') >= 0 ? Mathf.Max(cellHeight, capHeight * 1.25f) : cellHeight;
-        // Preserve fullwidth cells without bitmap tracking or character compression.
+        // Only the transient tracking moves cells; glyph size and the resting
+        // fullwidth layout stay unchanged. There is no extra gap after the line.
         string[] lines = label.text.Replace("\r", "").Split('\n');
         int vertical = (int)label.anchor / 3, horizontal = (int)label.anchor % 3;
         float blockHeight = cellHeight + (lines.Length - 1) * lineHeight;
@@ -192,6 +195,7 @@ public sealed class CjkTextRenderer : MonoBehaviour
                 width += glyph.advance * unit;
                 if (glyph.y1 > glyph.y0 && !char.IsWhiteSpace(c)) { minY = Mathf.Min(minY, glyph.y0); maxY = Mathf.Max(maxY, glyph.y1); }
             }
+            width += Mathf.Max(0, line.Length - 1) * animationSpacing;
             // Center the actual line's glyph bounds on the original Latin cap
             // center, rather than assuming every translated glyph fills the atlas cap box.
             float center = float.IsInfinity(minY) ? 0 : (minY + maxY) * .5f * unit * characterScale.y;
@@ -212,7 +216,7 @@ public sealed class CjkTextRenderer : MonoBehaviour
                     colors.Add(bottom); colors.Add(top); colors.Add(top); colors.Add(bottom);
                     triangles.Add(i); triangles.Add(i + 1); triangles.Add(i + 2); triangles.Add(i); triangles.Add(i + 2); triangles.Add(i + 3);
                 }
-                x += g.advance * unit;
+                x += g.advance * unit + animationSpacing;
             }
         }
         translatedMesh.Clear(); translatedMesh.SetVertices(vertices); translatedMesh.SetUVs(0, uv); translatedMesh.SetUVs(1, ramp); translatedMesh.SetColors(colors); translatedMesh.SetTriangles(triangles, 0); translatedMesh.RecalculateBounds();

@@ -26,15 +26,38 @@ public class Credits : MonoBehaviour
 
 	private bool CanExit;
 
+	private bool playingMovie;
+
+	private bool exiting;
+
 	public static bool GoToEndOfGame;
 
 	private void Start()
+	{
+		Time.timeScale = 1f;
+		fade = base.gameObject.AddComponent<CameraFade>();
+		playingMovie = true;
+		StartCoroutine(PlayMovie());
+	}
+
+	private IEnumerator PlayMovie()
+	{
+		StoryMoviePlayer.Playback movie = StoryMoviePlayer.Play(this, StoryMoviePlayer.Extro);
+		while (!movie.IsDone) yield return null;
+		while (StoryMoviePlayer.SkipInputHeld) yield return null;
+		yield return null;
+		if (!isActiveAndEnabled) yield break;
+		playingMovie = false;
+		if (movie.WasHandled) ExitScreen();
+		else if (movie.Outcome == StoryMoviePlayer.Result.Failed) StartCredits();
+	}
+
+	private void StartCredits()
 	{
 		Audio.ChangeMusicWithFade(Music, 0.6f, 1.5f);
 		FLDLogo.gameObject.SetActive(false);
 		Invoke("ExitScreen", 103.5f);
 		CreateTexts();
-		fade = base.gameObject.AddComponent<CameraFade>();
 		fade.FadeIn(7f);
 		DarkNebulaMetrics.StartScreen(DarkNebulaMetrics.Screens.Credits);
 		StartCoroutine(Play());
@@ -98,6 +121,7 @@ public class Credits : MonoBehaviour
 
 	private void Update()
 	{
+		if (playingMovie || exiting) return;
 		if (ScrollText)
 		{
 			TextContainer.transform.Translate(0f, Time.deltaTime * 25f, 0f);
@@ -110,6 +134,9 @@ public class Credits : MonoBehaviour
 
 	private void ExitScreen()
 	{
+		if (exiting) return;
+		exiting = true;
+		CancelInvoke("ExitScreen");
 		if (GoToEndOfGame)
 		{
 			GoToEndOfGame = false;

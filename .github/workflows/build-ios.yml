@@ -1,0 +1,86 @@
+name: Build iOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: iOS (${{ matrix.project }})
+    runs-on: macos-26
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      # Use one Unity license seat at a time.
+      max-parallel: 1
+      matrix:
+        project: [EpisodeOne, EpisodeTwo]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Export Unity project for iOS
+        uses: game-ci/unity-builder@eb1b9fba120c6e62c9fb7a7a81d6c107ce004c45 # v6.0.0
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          # Set UNITY_LICENSE for Personal or UNITY_SERIAL for Pro.
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          cliVersion: v0.1.72
+          projectPath: ${{ matrix.project }}
+          targetPlatform: iOS
+          versioning: None
+          buildsPath: Builds
+          buildName: ${{ matrix.project }}
+
+      - name: Compile for iPhone and package unsigned IPA
+        shell: bash
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: |
+          build_dir="$RUNNER_TEMP/dark-nebula-$PROJECT"
+          project_file="Builds/iOS/$PROJECT/Unity-iPhone.xcodeproj"
+          if [[ ! -d "$project_file" ]]; then
+            echo "::error::Unity did not export $project_file"
+            exit 1
+          fi
+
+          xcodebuild -version
+          xcodebuild build \
+            -project "$project_file" \
+            -scheme Unity-iPhone \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$build_dir/DerivedData" \
+            -jobs 2 \
+            CODE_SIGNING_ALLOWED=NO
+
+          shopt -s nullglob
+          apps=("$build_dir/DerivedData/Build/Products/Release-iphoneos/"*.app)
+          if [[ ${#apps[@]} -ne 1 ]]; then
+            echo "::error::Expected one iPhone app, found ${#apps[@]}"
+            exit 1
+          fi
+
+          payload="$build_dir/Payload"
+          mkdir -p "$payload" Builds/IPA
+          ditto "${apps[0]}" "$payload/$(basename "${apps[0]}")"
+          ditto -c -k --norsrc --keepParent "$payload" "Builds/IPA/DarkNebula-$PROJECT-unsigned.ipa"
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: DarkNebula-${{ matrix.project }}-iOS-unsigned
+          path: Builds/IPA/DarkNebula-${{ matrix.project }}-unsigned.ipa
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

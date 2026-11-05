@@ -10,14 +10,14 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 
 - [x] Modern Android support and tall-screen portrait layouts.
 - [x] Restored levels, gameplay, artwork and effects from both episodes.
-- [x] Restored the original disappearance and Matrix appearance in Episode Two's stone-formation sequence.
+- [x] Episode Two's stone-formation transition with original scenery, cinematic framing and ball visibility.
 - [x] Local progress, level ratings and leaderboards.
 - [x] Level completion results with skippable scoring animations.
 - [ ] iOS support and IPA builds.
 
 ### Extensions
 
-- [x] Original settings interface extended with timer, language, vibration and vessel controls, with tighter main-menu spacing.
+- [x] Original settings interface with timer, language, vibration and vessel controls in compact, centered layouts.
 - [x] Optional level timer in both episodes, enabled by default.
 - [x] Vessel selection in both episodes with shard purchases and free in-level collection.
 - [x] English and Simplified Chinese with a bundled geometric Chinese font, adjusted glyph sizing, fullwidth character widths and centered labels.

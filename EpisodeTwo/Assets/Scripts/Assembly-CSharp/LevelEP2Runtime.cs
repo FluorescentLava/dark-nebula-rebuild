@@ -692,11 +692,6 @@ public class LevelEP2Runtime : ILevelEP2
 					string batchName = layerName + "_batch";
                     if (LevelNum == 1 && layerName.StartsWith("aztek_") && pLayer.GetComponent<ParallaxLayer>().scrollValue == 1f && num < 794)
                         batchName = "MatrixSide_" + batchName;
-                    // The top cap of the forest portal contains an opaque black
-                    // exterior. The tall temple shot exposes it above the leaves.
-                    if (LevelNum == 1 && num >= 794 && num <= 797 && layerName == "aztek_walls"
-                        && Screen.width < Screen.height * LegacyScreenFit.ReferenceAspect)
-                        batchName = "ForestPortalCap_" + batchName;
                     BatchAdd(gameObject2, batchName, pLayer);
 				}
 			}
@@ -739,29 +734,6 @@ public class LevelEP2Runtime : ILevelEP2
                     extension.GetComponent<tk2dSprite>().spriteId = id;
                     InsetForestTileUvs(extension.GetComponent<tk2dSprite>());
                     BatchAdd(extension, "PortalOverlayExtension", pLayer);
-                }
-            }
-            if (layerName == "aztek_undergrowth" && Screen.width < Screen.height * LegacyScreenFit.ReferenceAspect)
-            {
-                int first = 0;
-                while (first < tileMap.Height && tileMap.GetTile((ushort)(tileMap.Width / 2), (ushort)first) == TileMap.Empty) first++;
-                if (first + 20 > tileMap.Height) return;
-                // Continue the full eight-row authored foliage cycle. Repeating
-                // only its first four rows creates a visible change of phase.
-                // The temple camera also rotates, exposing the sides of the tiles.
-                for (int row = first - 32; row < first + 16; row++)
-                for (int column = -8; column < tileMap.Width + 8; column++)
-                {
-                    if (row >= first && column >= 1 && column <= 5) continue;
-                    ushort srcX = (ushort)(1 + ((column - 1) % 5 + 5) % 5);
-                    ushort srcY = (ushort)(first + 12 + ((row - first) % 8 + 8) % 8);
-                    GameObject tile = UnityEngine.Object.Instantiate(tilemapAsset);
-                    tile.transform.SetParent(pLayer, false);
-                    tile.transform.rotation = Quaternion.LookRotation(Vector3.down);
-                    tile.transform.localPosition = new Vector3(column * 64f + 32f, pLayer.position.y, -row * 64f - 32f);
-                    tile.GetComponent<tk2dSprite>().spriteId = tileMap.GetTile(srcX, srcY);
-                    InsetForestTileUvs(tile.GetComponent<tk2dSprite>());
-                    BatchAdd(tile, "ForestCanopyPadding", pLayer);
                 }
             }
             return;

@@ -67,8 +67,8 @@ public class TempleEffect : Task
 		float fieldOfView = 79f;
 		World.cameraFollow.GetComponent<Camera>().orthographic = false;
 		Camera camera=World.cameraFollow.GetComponent<Camera>();
-        float originalHorizontal=Camera.VerticalToHorizontalFieldOfView(fieldOfView,LegacyScreenFit.ReferenceAspect);
-		camera.fieldOfView = Camera.HorizontalToVerticalFieldOfView(originalHorizontal,camera.aspect);
+		// Keep the authored vertical framing for the temple cinematic.
+		camera.fieldOfView = fieldOfView;
 		World.cameraFollow.GetComponent<Camera>().nearClipPlane = 0.2f;
 		World.cameraFollow.GetComponent<Camera>().farClipPlane = far;
 		World.vessel.transform.Translate(0f, -0.1f, 0f);

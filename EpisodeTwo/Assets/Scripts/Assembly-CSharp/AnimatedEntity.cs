@@ -313,7 +313,8 @@ public class AnimatedEntity : Entity
 		}
 	}
 
-	float? authoredScanStart;
+	Vector2[] authoredScanPositions;
+	int scanExitIndex;
 
     bool NeedsTallScanEntry()
     {
@@ -351,10 +352,17 @@ public class AnimatedEntity : Entity
     internal void StartTallScan()
     {
         if (curveAnimation == null || World.cameraFollow == null || Sprite == null) return;
-        var first = curveAnimation.nodes[0];
-        if (!authoredScanStart.HasValue) authoredScanStart = first.position.y;
-        first.position = new Vector2(first.position.x, authoredScanStart.Value);
-        SetPosition(first.position);
+        if (authoredScanPositions == null)
+        {
+            authoredScanPositions = new Vector2[curveAnimation.nodes.Count];
+            for (int i = 0; i < authoredScanPositions.Length; i++)
+                authoredScanPositions[i] = curveAnimation.nodes[i].position;
+        }
+        for (int i = 0; i < authoredScanPositions.Length; i++)
+            curveAnimation.nodes[i].position = authoredScanPositions[i];
+
+        Vector2 first = authoredScanPositions[0];
+        SetPosition(first);
         Camera camera = World.cameraFollow.GetComponent<Camera>();
         Bounds bounds = Sprite.GetComponent<Renderer>().bounds;
         float depth = camera.WorldToViewportPoint(bounds.center).z;
@@ -362,12 +370,61 @@ public class AnimatedEntity : Entity
         float extra = Mathf.Max(0f, screenTop - bounds.min.z + 1f);
         Vector3 offset = Vector3.forward * extra;
         if (transform.parent != null) offset = transform.parent.InverseTransformVector(offset);
-        first.position = new Vector2(first.position.x, first.position.y - offset.z);
-        SetPosition(first.position);
+        Vector2 entry = first + new Vector2(offset.x, -offset.z);
+
+        // The curve contains copies for pauses and its terminal pose. Keep all
+        // copies of each authored endpoint together when adapting tall screens.
+        scanExitIndex = 0;
+        for (int i = 1; i < authoredScanPositions.Length; i++)
+            if (authoredScanPositions[i].y > authoredScanPositions[scanExitIndex].y) scanExitIndex = i;
+        for (int i = 0; i < authoredScanPositions.Length; i++)
+            if (authoredScanPositions[i] == first) curveAnimation.nodes[i].position = entry;
+        SetPosition(entry);
         var body = GetComponent<Rigidbody>();
         if (body != null && body.isKinematic) body.position = transform.position;
         playAnimation();
         if (IsFrozen) Defrost();
+    }
+
+    internal bool UpdateTallScanExit()
+    {
+        // The short background sweeps in these two level variants can finish
+        // inside a tall view when the player backs up during their two seconds.
+        if ((World.levelNum != 1 && World.levelNum != 21)
+            || (activateEventFlag != 10 && activateEventFlag != 11)
+            || !NeedsTallScanEntry() || authoredScanPositions == null) return false;
+
+        Vector2 exit = curveAnimation.nodes[scanExitIndex].position;
+        Vector3 endpoint = transform.localPosition;
+        endpoint.x = exit.x;
+        endpoint.z = -exit.y;
+        if (transform.parent != null) endpoint = transform.parent.TransformPoint(endpoint);
+        Bounds bounds = Sprite.GetComponent<Renderer>().bounds;
+        bounds.center += endpoint - transform.position;
+        Camera camera = World.cameraFollow.GetComponent<Camera>();
+        float depth = camera.WorldToViewportPoint(bounds.center).z;
+        float screenBottom = camera.ViewportToWorldPoint(new Vector3(.5f, 0f, depth)).z;
+        float extra = Mathf.Max(0f, bounds.max.z - screenBottom + 1f);
+        if (extra > 0f)
+        {
+            Vector3 offset = Vector3.back * extra;
+            if (transform.parent != null) offset = transform.parent.InverseTransformVector(offset);
+            exit += new Vector2(offset.x, -offset.z);
+            for (int i = 0; i < authoredScanPositions.Length; i++)
+                if (authoredScanPositions[i] == authoredScanPositions[scanExitIndex])
+                    curveAnimation.nodes[i].position = exit;
+        }
+        bool moving = !curveAnimation.isDone;
+        if (extra > 0f || !moving)
+        {
+            // Re-evaluate this same native curve time after the camera's
+            // LateUpdate, including the final frame before its long pause.
+            curveAnimation.update();
+            SetPosition(curveAnimation.getPosition());
+            var body = GetComponent<Rigidbody>();
+            if (body != null && body.isKinematic) body.position = transform.position;
+        }
+        return moving;
     }
 
 	private void playAnimation()

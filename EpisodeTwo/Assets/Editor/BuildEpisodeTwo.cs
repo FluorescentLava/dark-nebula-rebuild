@@ -12,6 +12,7 @@ public static class BuildEpisodeTwo
 {
     public static void Build()
     {
+        AudioClipImportIntegrity.RepairAndValidate();
         string sdk = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Android", "Sdk");
         string ndk = Path.Combine(sdk, "ndk", "27.2.12479018");
         string managedJdk = Path.GetFullPath(Path.Combine(Application.dataPath, "../../Toolchains/jdk17"));
@@ -54,8 +55,12 @@ public static class BuildEpisodeTwo
             if (exportProject) output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../android-final-exports/episode2"));
             Directory.CreateDirectory(Path.GetDirectoryName(output));
             Debug.Log("BUILD scenes=" + scenes.Length + " output=" + output);
+            // Imported objects can recover without invalidating an older
+            // serialized player scene. Rebuild that data after validation.
+            BuildOptions options = BuildOptions.CleanBuildCache;
+            if (development) options |= BuildOptions.Development;
             var result = BuildPipeline.BuildPlayer(scenes, output, BuildTarget.Android,
-                development ? BuildOptions.Development : BuildOptions.None);
+                options);
             Debug.Log("BUILD_RESULT " + result.summary.result + " errors=" + result.summary.totalErrors + " warnings=" + result.summary.totalWarnings);
             if (result.summary.result != BuildResult.Succeeded) throw new Exception("Android build did not succeed");
         }

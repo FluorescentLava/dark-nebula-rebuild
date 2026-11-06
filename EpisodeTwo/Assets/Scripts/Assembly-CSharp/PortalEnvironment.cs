@@ -13,6 +13,7 @@ public sealed class PortalEnvironment : MonoBehaviour
     bool hidden;
     bool approaching;
     bool destinationHidden;
+    bool sceneryReordered;
     FlagConditionChanged forestTrigger;
     readonly List<Renderer> destination = new List<Renderer>();
     readonly List<Renderer> overlayExtensions = new List<Renderer>();
@@ -66,11 +67,17 @@ public sealed class PortalEnvironment : MonoBehaviour
         if (before != destinationHidden) {
             destinationHidden = before;
             foreach (Renderer r in overlayExtensions) if (r != null) r.forceRenderingOff = !before;
-            // Draw the original scenery before the retained portal grid;
-            // restore each material's authored queue on arrival.
-            foreach (var pair in sceneryQueues)
-                if (pair.Key != null) pair.Key.renderQueue = before ? 2990 : pair.Value;
             foreach (Renderer r in destination) if (r != null) r.forceRenderingOff = before;
+        }
+        // The portal grid needs the scenery first during the perspective shot.
+        // Reordering at60 also changes the water/bridge order still visible at
+        // the bottom of a tall orthographic view, cutting a gap in the bridge.
+        bool reorder = before && !camera.orthographic;
+        if (sceneryReordered != reorder)
+        {
+            sceneryReordered = reorder;
+            foreach (var pair in sceneryQueues)
+                if (pair.Key != null) pair.Key.renderQueue = reorder ? 2990 : pair.Value;
         }
         if (hidden == hide) return;
         hidden = hide;

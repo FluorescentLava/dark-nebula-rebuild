@@ -4,7 +4,7 @@
 
 A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for modern mobile devices, combining content recovered from the iOS and Android releases.
 
-## Features (0.3.5)
+## Features (0.3.6)
 
 ### Core features
 
@@ -31,15 +31,15 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 - [x] Background sensor calibration before each level starts.
 - [x] WASD controls for Windows Unity debugging, excluded from Release builds.
 
-## 0.3.5 update
+## 0.3.6 update
 
-Episode Two's portal scenery now joins the native cliff and ground on both exposed sides, staying on the bridge plane throughout the camera ascent and rotation. Episode Two audio preserves paused playback and clears stale fades and pooled state, keeping music and effects consistent through movies, pauses and scene changes. Episode One upgrades again use the original ownership conditions for each level and difficulty; saved selections activate only owned upgrades. Existing progress and preferences are preserved. The 0.3.4 release remains available separately.
+Episode Two's moving and rotating mechanisms now keep their position when checkpoint difficulty changes, fixing spikes that jumped back along their path while visible on tall screens. Sleeping sine obstacles restore their update and physics state correctly. Music imports are validated before Android packaging, portal scenery uses two small masked crops attached to the native terrain, and shockwave scans complete outside the tall viewport.
 
 The iOS packages are unsigned and require an Apple-issued signing certificate and provisioning profile before installation on a regular iPhone or iPad.
 
 ## Build from source
 
-Open `EpisodeOne` or `EpisodeTwo` as a separate project in Unity **6000.4.11f1**, with the relevant Android or iOS Build Support module installed. The source ZIP contains the tracked repository at the release commit; local caches, build products, validation tooling and signing keys are excluded.
+Download **Source code (zip)** or **Source code (tar.gz)** from the selected GitHub release, or check out its tag. GitHub generates these archives from the release tag; uploaded release assets contain the two Android APKs and two unsigned iOS IPAs. Open `EpisodeOne` or `EpisodeTwo` as a separate project in Unity **6000.4.11f1**, with the relevant Android or iOS Build Support module installed. Local caches, build products, validation tooling and signing keys are excluded from the source archive.
 
 For Android, the editor entry points are `BuildEpisodeOne.Build` and `BuildEpisodeTwo.Build` under each project's `Assets/Editor`. They target ARM64 and Android API 26 or newer, with target API 35. Configure Android SDK, NDK **27.2.12479018** and JDK **17**; the build entry points accept the JDK path through `DARK_NEBULA_JDK17`. Android distribution signing uses your own keystore.
 

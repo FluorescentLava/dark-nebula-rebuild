@@ -15,6 +15,8 @@ public class MovingObstacle : Entity, IFreezable
 
 	private float originalSpeed;
 
+	private float phaseTimeOffset;
+
 	private Transform _transform;
 
 	private Rigidbody _rigidbody;
@@ -36,12 +38,16 @@ public class MovingObstacle : Entity, IFreezable
 
 	private void SetDifficultyTo(float delta)
 	{
-		speed = delta * originalSpeed;
+		float nextSpeed = delta * originalSpeed;
+		phaseTimeOffset += Time.time * (speed - nextSpeed);
+		speed = nextSpeed;
 	}
 
-	private void OnDisable()
+	protected override void OnDestroy()
 	{
+		// Sleeping obstacles still need phase corrections when difficulty changes.
 		World.SignalDifficultyChanged -= SetDifficultyTo;
+		base.OnDestroy();
 	}
 
 	private void Start()
@@ -70,22 +76,24 @@ public class MovingObstacle : Entity, IFreezable
 	{
 		if (!_isFrozen)
 		{
-			float num = (float)Math.PI / 5f * speed;
-			float num2 = startpos + Mathf.Sin(Time.time * num + phase * (float)Math.PI * 2f) * amplitude;
-			if (isVertical)
-			{
-				tmp.z = num2;
-			}
-			else
-			{
-				tmp.x = num2;
-			}
+			UpdatePosition();
 			_rigidbody.MovePosition(tmp);
 		}
 	}
 
-	public new void Defrost()
+	private void UpdatePosition()
 	{
+		float angle = (Time.time * speed + phaseTimeOffset) * ((float)Math.PI / 5f) + phase * (float)Math.PI * 2f;
+		float position = startpos + Mathf.Sin(angle) * amplitude;
+		if (isVertical) tmp.z = position;
+		else tmp.x = position;
+	}
+
+	public override void Defrost()
+	{
+		base.Defrost();
 		_isFrozen = false;
+		UpdatePosition();
+		_rigidbody.position = tmp;
 	}
 }

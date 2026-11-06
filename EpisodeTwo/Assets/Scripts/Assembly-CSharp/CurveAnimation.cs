@@ -39,14 +39,14 @@ public class CurveAnimation
 	public void rewind()
 	{
 		prepare();
-		startTime = World.WorldTimeInSeconds;
+		startTime = World.AnimationTimeInSeconds;
 		calculateTime();
 	}
 
 	public void play()
 	{
 		isPaused = false;
-		startTime = World.WorldTimeInSeconds;
+		startTime = World.AnimationTimeInSeconds;
 	}
 
 	public void prepare()
@@ -62,13 +62,12 @@ public class CurveAnimation
 	{
 		if (shouldMoveInSyncWithOthers)
 		{
-			time = World.WorldTimeInSeconds;
+			time = World.AnimationTimeInSeconds;
 		}
 		else
 		{
-			time = World.WorldTimeInSeconds - startTime;
+			time = World.AnimationTimeInSeconds - startTime;
 		}
-		time *= World.Difficulty;
 		if (shouldLoop)
 		{
 			time %= currentAddTime;

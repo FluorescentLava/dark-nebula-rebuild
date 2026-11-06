@@ -4,7 +4,7 @@
 
 基于 Unity 6 的 **Dark Nebula Episode One** 与 **Episode Two** 复原项目，整合 iOS 和 Android 版本内容，适配现代移动设备。
 
-## 功能（0.3.5）
+## 功能（0.3.6）
 
 ### 核心功能
 
@@ -31,15 +31,15 @@
 - [x] 每次关卡开始前完成后台传感器校准。
 - [x] Windows Unity 调试用 WASD 控制，Release 不包含。
 
-## 0.3.5 更新
+## 0.3.6 更新
 
-二代石阵补景在左右两侧与原生崖壁及地面衔接，在镜头升降和旋转时持续保持桥面同层。修复二代音频暂停、淡入淡出和复用状态，保持影片、暂停及场景切换前后的音乐与音效一致。一代升级恢复按关卡和难度区分的原版拥有条件，已保存的启用选项仅对已拥有升级生效。保留已有进度和偏好设置。0.3.4 版本继续单独保留。
+二代移动与旋转机关在检查点调整难度时保持当前位置，修复高屏下方仍可见的尖刺突然跳回运动路径另一端的问题。正弦障碍休眠后能完整恢复更新和物理状态。Android 打包前校验音乐导入资源，石阵补景改用跟随原生地形的两块小型遮罩贴图，扫描光带在高屏可视范围外完成运动。
 
 iOS 提供未签名 IPA，需要 Apple 签发的签名证书与描述文件，才能安装到普通 iPhone 或 iPad。
 
 ## 从源码构建
 
-使用 Unity **6000.4.11f1** 分别打开 `EpisodeOne` 或 `EpisodeTwo` 工程，并安装所需的 Android 或 iOS Build Support 模块。源码 ZIP 对应发布提交中的受版本控制文件，不包含本地缓存、构建产物、验证工具或签名密钥。
+从选定的 GitHub Release 下载 **Source code (zip)** 或 **Source code (tar.gz)**，也可直接检出对应标签。GitHub 会按发布标签自动生成源码归档；额外上传的发布资产为两代 Android APK 和两代未签名 iOS IPA。使用 Unity **6000.4.11f1** 分别打开 `EpisodeOne` 或 `EpisodeTwo` 工程，并安装所需的 Android 或 iOS Build Support 模块。源码归档不包含本地缓存、构建产物、验证工具或签名密钥。
 
 Android 构建入口为各工程 `Assets/Editor` 下的 `BuildEpisodeOne.Build` 和 `BuildEpisodeTwo.Build`，目标为 ARM64，最低 Android API 26、目标 API 35。需配置 Android SDK、NDK **27.2.12479018** 与 JDK **17**；构建入口可通过 `DARK_NEBULA_JDK17` 读取 JDK 路径。自行分发 Android 包时需使用自己的签名密钥库。
 

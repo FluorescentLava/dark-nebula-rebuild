@@ -102,6 +102,10 @@ public class World : MonoBehaviour
 
 	private static float _difficulty;
 
+	private static float animationTimeOffset;
+
+	private static bool hasAnimationDifficulty;
+
 	public static bool IsRunning
 	{
 		get
@@ -116,6 +120,12 @@ public class World : MonoBehaviour
 		{
 			return Time.time - startTime;
 		}
+	}
+
+	// Difficulty changes affect future motion without rephasing every mechanism.
+	public static float AnimationTimeInSeconds
+	{
+		get { return WorldTimeInSeconds * _difficulty + animationTimeOffset; }
 	}
 
 	public static float Difficulty
@@ -264,6 +274,8 @@ public class World : MonoBehaviour
 		scriptLoader.Dispose();
 		cameraFollow.GetComponent<Camera>().enabled = true;
 		startTime = Time.time;
+		animationTimeOffset = 0f;
+		hasAnimationDifficulty = false;
 		templeEffect = new TempleEffect();
 		if (GamePreStart != null)
 		{
@@ -591,7 +603,13 @@ public class World : MonoBehaviour
 
 	public static void SetDifficultyTo(float d)
 	{
-		_difficulty = Mathf.Max(d, 0.8f);
+		float nextDifficulty = Mathf.Max(d, 0.8f);
+		if (hasAnimationDifficulty)
+		{
+			animationTimeOffset += WorldTimeInSeconds * (_difficulty - nextDifficulty);
+		}
+		_difficulty = nextDifficulty;
+		hasAnimationDifficulty = true;
 		if (SignalDifficultyChanged != null)
 		{
 			SignalDifficultyChanged(d);

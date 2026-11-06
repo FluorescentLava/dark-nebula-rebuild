@@ -20,6 +20,8 @@ public class Windmill : Entity, IFreezable
 
 	protected float originalRotationSpeed = 1f;
 
+	private float rotationTimeOffset;
+
 	protected Transform _armsTransform;
 
 	protected Transform _transform;
@@ -46,22 +48,26 @@ public class Windmill : Entity, IFreezable
 		_z = base.transform.position.z;
 	}
 
-	private void OnDisable()
+	protected override void OnDestroy()
 	{
+		// Keep the difficulty subscription while this entity is asleep.
 		World.SignalDifficultyChanged -= SetDifficultyTo;
+		base.OnDestroy();
 	}
 
 	public virtual void Update()
 	{
 		if (!IsPooled)
 		{
-			armsTransform.localRotation = Quaternion.AngleAxis(rotationSpeed * Time.time * 30f * -3.275f, Vector3.forward);
+			armsTransform.localRotation = Quaternion.AngleAxis((rotationSpeed * Time.time + rotationTimeOffset) * 30f * -3.275f, Vector3.forward);
 		}
 	}
 
 	protected virtual void SetDifficultyTo(float delta)
 	{
-		rotationSpeed = originalRotationSpeed * delta;
+		float nextSpeed = originalRotationSpeed * delta;
+		rotationTimeOffset += Time.time * (rotationSpeed - nextSpeed);
+		rotationSpeed = nextSpeed;
 	}
 
 	private void OnTriggerStay(Collider other)

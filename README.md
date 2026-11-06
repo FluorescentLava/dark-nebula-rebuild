@@ -35,7 +35,7 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 
 Episode One's leaderboard retains its portraits and reuses Episode Two's time, date, English header font and star artwork, matching their sizes, colors and placement. Multiple-value selectors now center their visible text, fixing raised level captions. The completion screen now accepts and saves a nickname before adding that run to the local Top 10. A new local achievements browser shows all fourteen original gold-star milestones, badges and unlock progress in English and Simplified Chinese.
 
-Episode Two's vessel screen now uses the original shard icon and balance panel, and copied menu buttons retain their input hit areas. Shard pickup text uses the existing pickup wording, and remaining-life substitutions work in English. The temple transition restores the earlier upper canopy padding and forest-cap blend while retaining the current lower scenery patches and native camera motion.
+Episode Two's leaderboard now shares Episode One's original portraits and automatically shrinks long nicknames to fit beside the time. Complete Latin, Chinese and mixed names remain visible, and short names recover their normal size when rows are reused. Its vessel screen now uses the original shard icon and balance panel, and copied menu buttons retain their input hit areas. Shard pickup text uses the existing pickup wording, and remaining-life substitutions work in English. The temple transition restores the earlier upper canopy padding and forest-cap blend while retaining the current lower scenery patches and native camera motion.
 
 ## 0.3.6 update
 

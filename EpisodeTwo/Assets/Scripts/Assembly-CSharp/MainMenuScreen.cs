@@ -37,6 +37,8 @@ public class MainMenuScreen : MonoBehaviour
 
 	private bool _isEnabled = true;
 
+	private bool _startingNewGame;
+
 	private void Awake()
 	{
 		if (!_initialized)
@@ -122,6 +124,7 @@ public class MainMenuScreen : MonoBehaviour
 
 	private void onNewGame(SimpleButton source)
 	{
+		if (!_isEnabled || _startingNewGame) return;
 		SetEnabled(false);
 		if (UserSettings.I.GetHasAnyProgress())
 		{
@@ -131,9 +134,7 @@ public class MainMenuScreen : MonoBehaviour
 		}
 		else
 		{
-			LoadLevelScreen.LevelToLoad = 1;
-			World.IsRestart = false;
-			StartCoroutine(LoadLevel("LoadLevel"));
+			BeginNewGame(false);
 		}
 	}
 
@@ -167,7 +168,13 @@ public class MainMenuScreen : MonoBehaviour
 
 	private void onCloseConfirmScreen()
 	{
+		if (_startingNewGame) return;
+		CloseConfirmation();
 		SetEnabled(true);
+	}
+
+	private void CloseConfirmation()
+	{
 		_alertScreen.EventNO -= onCloseConfirmScreen;
 		_alertScreen.EventYES -= OnEraseProgress;
 		_alertScreen.EventYES -= onQuit;
@@ -175,6 +182,21 @@ public class MainMenuScreen : MonoBehaviour
 	}
 
 	private void OnEraseProgress()
+	{
+		if (_startingNewGame || !_alertScreen.gameObject.activeSelf) return;
+		BeginNewGame(true);
+	}
+
+	private void BeginNewGame(bool eraseProgress)
+	{
+		if (_startingNewGame) return;
+		_startingNewGame = true;
+		CloseConfirmation();
+		SetEnabled(false);
+		StartCoroutine(PlayIntro(true, eraseProgress));
+	}
+
+	private void EraseProgress()
 	{
 		for (int i = 1; i <= UserSettings.I.GetMaxLevel(); i++)
 		{
@@ -189,8 +211,6 @@ public class MainMenuScreen : MonoBehaviour
 		UserSettings.I.SetMaxSelectableLevel(UserSettings.I.GetPackMinLevel(LevelPack.Original));
 		UserSettings.I.SetMaxSelectableLevel(UserSettings.I.GetPackMinLevel(LevelPack.Extended));
 		LocalLeaderboard.ResetLeaderboards();
-		LoadLevelScreen.LevelToLoad = 1;
-		StartCoroutine(LoadLevel("LoadLevel"));
 	}
 
 	private void onContinueGame(SimpleButton source)
@@ -270,7 +290,7 @@ public class MainMenuScreen : MonoBehaviour
 		StartCoroutine(LoadLevel("Credits"));
 	}
 
-	private IEnumerator PlayIntro()
+	private IEnumerator PlayIntro(bool startNewGame = false, bool eraseProgress = false)
 	{
 		StoryMoviePlayer.Playback movie = StoryMoviePlayer.Play(this, StoryMoviePlayer.Intro);
 		while (!movie.IsDone) yield return null;
@@ -278,7 +298,21 @@ public class MainMenuScreen : MonoBehaviour
 		// A skip must not also press a menu row or open the quit dialog.
 		while (StoryMoviePlayer.SkipInputHeld) yield return null;
 		yield return null;
-		if (isActiveAndEnabled) SetEnabled(true);
+		if (!isActiveAndEnabled) yield break;
+		if (startNewGame && movie.Outcome != StoryMoviePlayer.Result.Cancelled)
+		{
+			// Commit the accepted reset only after playback has finished and the
+			// menu still owns the transition. Failed video keeps New Game usable.
+			if (eraseProgress) EraseProgress();
+			LoadLevelScreen.LevelToLoad = 1;
+			World.IsRestart = false;
+			yield return LoadLevel("LoadLevel");
+		}
+		else
+		{
+			_startingNewGame = false;
+			SetEnabled(true);
+		}
 	}
 
 	private void onEpisodeTwo(SimpleButton source)

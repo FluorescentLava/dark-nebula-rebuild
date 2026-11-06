@@ -25,9 +25,11 @@ public sealed class PortalEnvironment : MonoBehaviour
         forestTrigger = new FlagConditionChanged(60);
         forestTrigger.Callback += Approach;
         yield return null; // Tile batches combine in Start.
+        ParallaxLayer roadLayer = null;
         foreach (ParallaxLayer layer in Object.FindObjectsByType<ParallaxLayer>())
         {
             if (layer.gameObject.scene != gameObject.scene || !(layer.name.StartsWith("aztek_") || layer.name == "matrix_overlay" || layer.name == "matrix_floor" || layer.name.StartsWith("matrix_dof"))) continue;
+            if (layer.name == "aztek_walls") roadLayer = layer;
             foreach (Renderer renderer in layer.GetComponentsInChildren<Renderer>(true))
             {
                 if (renderer.GetComponentInParent<CombineChildren>() == null) continue;
@@ -48,7 +50,8 @@ public sealed class PortalEnvironment : MonoBehaviour
         }
         Camera portalCamera = World.cameraFollow == null ? null : World.cameraFollow.GetComponent<Camera>();
         if (portalCamera != null && portalCamera.aspect < LegacyScreenFit.ReferenceAspect - .001f
-            && GetComponent<PortalJungleUnderlay>() == null) gameObject.AddComponent<PortalJungleUnderlay>();
+            && roadLayer != null && roadLayer.GetComponent<PortalJungleUnderlay>() == null)
+            roadLayer.gameObject.AddComponent<PortalJungleUnderlay>();
     }
 
     void Approach() { approaching = true; }

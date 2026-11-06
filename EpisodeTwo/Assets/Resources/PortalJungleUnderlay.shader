@@ -1,9 +1,11 @@
 Shader "DarkNebula/PortalJungleUnderlay" {
  Properties { _MainTex ("Generated original", 2D) = "white" {} }
  SubShader {
-  Tags { "Queue"="Geometry-10" "RenderType"="Opaque" }
+  Tags { "Queue"="Transparent-20" "RenderType"="Opaque" }
   Pass {
-   Cull Off ZWrite On ZTest LEqual Blend Off
+   // The native bridge shares this plane and draws at 2990 during the shot.
+   // Paint its backing first, without depth writes or a coplanar depth test.
+   Cull Off ZWrite Off ZTest Always Blend Off
    CGPROGRAM
    #pragma vertex vert
    #pragma fragment frag

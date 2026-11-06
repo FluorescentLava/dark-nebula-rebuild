@@ -33,7 +33,16 @@ public sealed class StoryMoviePlayer : MonoBehaviour
     private VideoPlayer video;
     private AudioSource soundtrack;
     private RawImage picture;
+    private RectTransform skipPrompt;
+    private Text skipLabel;
     private bool allowSkip;
+    private bool waitForPointerRelease = true;
+    private bool touchMouseGuard;
+    private bool pointerDown;
+    private bool skipCandidate;
+    private int pointerId;
+    private Vector2 pointerStart;
+    private double pointerStartedAt;
     private bool globalsCaptured;
     private bool previousAudioPause;
     private float previousTimeScale;
@@ -101,6 +110,35 @@ public sealed class StoryMoviePlayer : MonoBehaviour
         picture.rectTransform.anchorMin = picture.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         picture.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -90f);
 
+        if (allowSkip)
+        {
+            var prompt = new GameObject("Skip prompt", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            prompt.transform.SetParent(transform, false);
+            prompt.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.8f);
+            prompt.GetComponent<Image>().raycastTarget = false;
+            skipPrompt = prompt.GetComponent<RectTransform>();
+            skipPrompt.anchorMin = skipPrompt.anchorMax = new Vector2(0.5f, 0.5f);
+            var label = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            label.transform.SetParent(prompt.transform, false);
+            skipLabel = label.GetComponent<Text>();
+            // Use the same geometric CJK source as ChineseAtlas and the recovered
+            // BankGothic face used by the menus, with their normal gray tint.
+            skipLabel.font = Resources.Load<Font>(GamePreferences.Chinese
+                ? "Fonts/DarkNebulaCJKFullWidth-Regular" : "Fonts/darknebula");
+            skipLabel.text = GamePreferences.Chinese ? "单击此处跳过动画" : "Tap here to skip the animation";
+            skipLabel.color = new Color(1f, 1f, 1f, 0.4f);
+            skipLabel.alignment = TextAnchor.MiddleCenter;
+            skipLabel.supportRichText = false;
+            skipLabel.raycastTarget = false;
+            skipLabel.resizeTextForBestFit = true;
+            RectTransform labelRect = skipLabel.rectTransform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = new Vector2(8f, 4f);
+            labelRect.offsetMax = new Vector2(-8f, -4f);
+            prompt.SetActive(false);
+        }
+
         soundtrack = gameObject.AddComponent<AudioSource>();
         soundtrack.playOnAwake = false;
         soundtrack.ignoreListenerPause = true;
@@ -116,6 +154,7 @@ public sealed class StoryMoviePlayer : MonoBehaviour
         video.renderMode = VideoRenderMode.APIOnly;
         video.timeUpdateMode = VideoTimeUpdateMode.UnscaledGameTime;
         video.waitForFirstFrame = true;
+        video.playbackSpeed = 1f;
         video.isLooping = false;
         video.skipOnDrop = true;
         video.audioOutputMode = VideoAudioOutputMode.AudioSource;
@@ -200,11 +239,78 @@ public sealed class StoryMoviePlayer : MonoBehaviour
             Fail("Video preparation or playback timed out.");
             return;
         }
-        if (playback.HasStarted && now - firstFrameAt > 0.25d &&
-            (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Escape) ||
-             Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) ||
-             (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)))
-            RequestSkip();
+        if (allowSkip && playback.HasStarted && now - firstFrameAt > 0.25d) UpdateSkipInput(now);
+    }
+
+    private void BlockSkipGesture()
+    {
+        waitForPointerRelease = true;
+        pointerDown = skipCandidate = false;
+    }
+
+    private void UpdateSkipInput(double now)
+    {
+        int touches = Input.touchCount;
+        Touch touch = touches > 0 ? Input.GetTouch(0) : default(Touch);
+        UpdateSkipInput(now, touches, touch.fingerId, touch.phase, touch.position,
+            Input.GetMouseButton(0), Input.GetMouseButtonDown(0), Input.GetMouseButtonUp(0), Input.mousePosition);
+    }
+
+    private void UpdateSkipInput(double now, int touches, int finger, TouchPhase phase, Vector2 touchPosition,
+        bool held, bool pressed, bool released, Vector2 mousePosition)
+    {
+        // Touch is authoritative. Its emulated mouse press/release must drain
+        // completely before a subsequent mouse gesture can be considered.
+        if (touches > 0)
+        {
+            touchMouseGuard = true;
+            HandleSkipPointer(finger, phase == TouchPhase.Began, phase == TouchPhase.Ended,
+                phase == TouchPhase.Canceled || touches != 1, touchPosition, now);
+            return;
+        }
+        if (touchMouseGuard)
+        {
+            BlockSkipGesture();
+            if (!held && !pressed && !released) { touchMouseGuard = false; waitForPointerRelease = false; }
+            return;
+        }
+        if (!held && !pressed && !released) { waitForPointerRelease = false; return; }
+        HandleSkipPointer(-1, pressed, released, false, mousePosition, now);
+    }
+
+    private bool InsideSkipPrompt(Vector2 position)
+    {
+        return skipPrompt != null && skipPrompt.gameObject.activeSelf &&
+            RectTransformUtility.RectangleContainsScreenPoint(skipPrompt, position, null);
+    }
+
+    private void HandleSkipPointer(int id, bool pressed, bool released, bool cancelled, Vector2 position, double now)
+    {
+        if (cancelled) { BlockSkipGesture(); return; }
+        if (waitForPointerRelease) return;
+        if (pressed)
+        {
+            if (pointerDown) { BlockSkipGesture(); return; }
+            if (!skipPrompt.gameObject.activeSelf)
+            {
+                skipPrompt.gameObject.SetActive(true);
+                BlockSkipGesture();
+                return;
+            }
+            pointerDown = true;
+            pointerId = id;
+            pointerStart = position;
+            pointerStartedAt = now;
+            skipCandidate = InsideSkipPrompt(position);
+        }
+        if (!pointerDown) { BlockSkipGesture(); return; }
+        float slop = Mathf.Max(12f, Screen.width * 0.025f);
+        if (id != pointerId || !InsideSkipPrompt(position) || now - pointerStartedAt > 0.75d ||
+            (position - pointerStart).sqrMagnitude > slop * slop) skipCandidate = false;
+        if (!released) return;
+        bool confirmed = skipCandidate;
+        BlockSkipGesture();
+        if (confirmed) RequestSkip();
     }
 
     private void LateUpdate()
@@ -218,6 +324,20 @@ public sealed class StoryMoviePlayer : MonoBehaviour
         float scale = Mathf.Min(safe.width / texture.height, safe.height / texture.width);
         picture.rectTransform.sizeDelta = new Vector2(texture.width * scale, texture.height * scale);
         picture.rectTransform.anchoredPosition = safe.center - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        if (skipPrompt != null)
+        {
+            float margin = Mathf.Max(8f, safe.width * 0.03f);
+            float height = Mathf.Min(Mathf.Clamp(safe.width * 0.12f, 44f, 128f), Mathf.Max(1f, safe.height - margin * 2f));
+            skipPrompt.sizeDelta = new Vector2(Mathf.Max(1f, safe.width - margin * 2f), height);
+            float lift = Mathf.Min(safe.width * 0.035f, Mathf.Max(0f, safe.height - margin * 2f - height));
+            skipPrompt.anchoredPosition = new Vector2(safe.center.x - Screen.width * 0.5f,
+                safe.yMin + margin + lift + height * 0.5f - Screen.height * 0.5f);
+            // BankGothic has a lower cap height than the fullwidth CJK face.
+            float textSize = (GamePreferences.Chinese ? 0.045f : 0.075f) * 0.85f;
+            skipLabel.resizeTextMaxSize = Mathf.Max(12, Mathf.RoundToInt(safe.width * textSize));
+            skipLabel.resizeTextMinSize = Mathf.Max(10, skipLabel.resizeTextMaxSize / 2);
+            skipLabel.fontSize = skipLabel.resizeTextMaxSize;
+        }
     }
 
     private void OnApplicationPause(bool paused) { applicationPaused = paused; UpdateSuspension(); }
@@ -228,6 +348,7 @@ public sealed class StoryMoviePlayer : MonoBehaviour
         bool shouldSuspend = applicationPaused || !applicationFocused;
         if (suspended == shouldSuspend) return;
         suspended = shouldSuspend;
+        BlockSkipGesture();
         if (video == null || playback == null || playback.IsDone) return;
         if (suspended) video.Pause();
         else

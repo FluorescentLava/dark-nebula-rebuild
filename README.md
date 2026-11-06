@@ -4,18 +4,17 @@
 
 A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for modern mobile devices, combining content recovered from the iOS and Android releases.
 
-## Features (0.3.3)
+## Features (0.3.4)
 
 ### Core features
 
 - [x] Modern Android support and tall-screen portrait layouts.
 - [x] Restored levels, gameplay, artwork and effects from both episodes.
-- [x] Episode Two's generated portal scenery, displayed without alpha feathering or a scenery crossfade and verified in the production desktop flow.
+- [x] Episode Two's generated portal scenery shares the native bridge layer and stays aligned as the camera rises and rotates.
 - [x] Local progress, level ratings and leaderboards.
 - [x] Level completion results with skippable scoring animations.
-- [x] Restored Episode Two intro and extro movies with their original soundtracks and skip controls. The intro plays on the first main-menu entry; Credits plays the extro and returns to the main menu, while completing the campaign plays the extro before EndOfGame.
+- [x] Restored Episode Two intro and extro movies with their original soundtracks and two-step skip controls. A first tap shows a gray prompt in the game's sci-fi font; release, then tap the prompt to skip. The intro plays on the first main-menu entry and whenever New Game is accepted, before the first level starts. Credits plays the extro and returns to the main menu, while completing the campaign plays the extro before EndOfGame.
 - [x] iOS Unity export, Xcode compilation and unsigned IPA packaging verified for both episodes.
-- [ ] Installation and gameplay validation of the final 0.3.3 iOS builds on a physical device.
 
 ### Extensions
 
@@ -32,9 +31,11 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 - [x] Background sensor calibration before each level starts.
 - [x] WASD controls for Windows Unity debugging, excluded from Release builds.
 
-## 0.3.3 build status
+## 0.3.4 update
 
-The selected Episode Two portal treatment keeps the generated scenery fill and removes the additional scenery transition and alpha feathering. Its production desktop checks and the movie-flow regression have passed. Release packages must be built from this accepted source commit; earlier 0.3.3 APKs and CI exports remain development candidates. This final revision has not been tested on physical Android or iOS devices. iOS validation covers technical export, Xcode compilation and package inspection only. The IPAs are unsigned and require an Apple-issued signing certificate and provisioning profile before installation on a regular iPhone or iPad.
+Episode Two's portal scenery follows the bridge's actual layer, keeping the fill attached to the road throughout the camera movement. Story movies use two-step skip confirmation with a smaller, raised gray prompt in the existing geometric Chinese and BankGothic menu fonts. Every accepted New Game replays the intro before starting the first level; cancelling the confirmation preserves progress, and Continue keeps its existing route. The 0.3.3 release remains available separately.
+
+The iOS packages are unsigned and require an Apple-issued signing certificate and provisioning profile before installation on a regular iPhone or iPad.
 
 ## Build from source
 

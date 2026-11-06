@@ -14,7 +14,12 @@ Shader "DarkNebula/PortalJungleUnderlay" {
    struct appdata { float4 vertex:POSITION; float2 uv:TEXCOORD0; };
    struct v2f { float4 vertex:SV_POSITION; float2 uv:TEXCOORD0; };
    v2f vert(appdata v) { v2f o; o.vertex=UnityObjectToClipPos(v.vertex); o.uv=v.uv; return o; }
-   fixed4 frag(v2f i):SV_Target { return fixed4(tex2D(_MainTex,i.uv).rgb,1); }
+   fixed4 frag(v2f i):SV_Target {
+    // Reflect the added forward section at the original image edge. The first
+    // 0..1 section and its world scale stay unchanged; no texture is stretched.
+    i.uv.y = 1.0 - abs(frac(i.uv.y * 0.5) * 2.0 - 1.0);
+    return fixed4(tex2D(_MainTex,i.uv).rgb,1);
+   }
    ENDCG
   }
  }

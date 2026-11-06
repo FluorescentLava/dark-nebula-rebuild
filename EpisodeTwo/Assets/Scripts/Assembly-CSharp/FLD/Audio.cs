@@ -47,7 +47,7 @@ namespace FLD
 				Storage.settings.Set("_muteSound", _muteSound);
 				foreach (AudioUnit activeAudioUnit in _activeAudioUnits)
 				{
-					if (activeAudioUnit.Type == AudioUnit.AudioType.SoundEffect)
+					if (activeAudioUnit != null && activeAudioUnit.Type == AudioUnit.AudioType.SoundEffect)
 					{
 						activeAudioUnit.IsMute = _muteSound;
 					}
@@ -68,7 +68,7 @@ namespace FLD
 				Storage.settings.Set("_muteMusic", _muteMusic);
 				foreach (AudioUnit activeAudioUnit in _activeAudioUnits)
 				{
-					if (activeAudioUnit.Type == AudioUnit.AudioType.Music)
+					if (activeAudioUnit != null && activeAudioUnit.Type == AudioUnit.AudioType.Music)
 					{
 						activeAudioUnit.IsMute = _muteMusic;
 					}
@@ -399,14 +399,7 @@ namespace FLD
 
 		public static bool IsSoundPlaying(string pID)
 		{
-			for (int i = 0; i < _activeAudioUnits.Count; i++)
-			{
-				if (_activeAudioUnits[i].Id.Equals(pID))
-				{
-					return true;
-				}
-			}
-			return false;
+			return GetAudioUnit(pID) != null;
 		}
 
 		public static bool IsSameSoundPlaying(string pID, AudioClip sound)
@@ -419,6 +412,11 @@ namespace FLD
 		{
 			for (int i = 0; i < _activeAudioUnits.Count; i++)
 			{
+				if (_activeAudioUnits[i] == null)
+				{
+					_activeAudioUnits.RemoveAt(i--);
+					continue;
+				}
 				if (_activeAudioUnits[i].Id.Equals(pID))
 				{
 					return _activeAudioUnits[i];

@@ -83,7 +83,7 @@ public class BoosterManager
 
 	public static bool Have(string pBoosterID)
 	{
-		return true; // All boosters are available without purchases.
+		return UserPurchases.Instance.HasProduct(pBoosterID);
 	}
 
 	public static bool Have(Booster pBooster)
@@ -93,7 +93,7 @@ public class BoosterManager
 
 	public static bool IsEnabled(string pBoosterID)
 	{
-		return UserSettings.Instance.IsBoosterEnabled(pBoosterID);
+		return Have(pBoosterID) && UserSettings.Instance.IsBoosterEnabled(pBoosterID);
 	}
 
 	public static bool IsEnabled(Booster pBooster, int pLevel, bool pExpert)

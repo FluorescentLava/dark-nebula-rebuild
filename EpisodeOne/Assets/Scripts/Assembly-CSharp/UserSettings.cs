@@ -122,7 +122,15 @@ public class UserSettings
 
 	public string GetUserName()
 	{
-		return "Player".Localize();
+		string name = _settings.GetString("UserName");
+		return string.IsNullOrWhiteSpace(name) ? "PLAYER".Localize() : name;
+	}
+
+	public void SetUserName(string name)
+	{
+		// Store the literal nickname, so changing language never translates it.
+		_settings.Set("UserName", string.IsNullOrWhiteSpace(name) ? string.Empty : name.Trim());
+		PlayerPrefs.Save();
 	}
 
 	public bool GetVibration()

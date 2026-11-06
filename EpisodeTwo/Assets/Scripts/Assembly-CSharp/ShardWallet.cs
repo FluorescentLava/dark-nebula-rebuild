@@ -3,6 +3,7 @@ using UnityEngine;
 // Episode One's free shard economy, stored independently for Episode Two.
 public static class ShardWallet
 {
+    public static event System.Action BalanceChanged;
     const string BalanceKey = "Gameplay.Shards";
     const string ChanceKey = "Gameplay.ShardSpawnChance";
     public static int Balance
@@ -16,12 +17,15 @@ public static class ShardWallet
     public static bool Spend(int amount)
     {
         if (amount<=0 || Balance<amount) return false;
-        PlayerPrefs.SetInt(BalanceKey,Balance-amount); PlayerPrefs.Save(); return true;
+        PlayerPrefs.SetInt(BalanceKey,Balance-amount); PlayerPrefs.Save();
+        if (BalanceChanged != null) BalanceChanged();
+        return true;
     }
     public static void Earn(int amount)
     {
         if(amount<=0) return;
         PlayerPrefs.SetInt(BalanceKey,(int)System.Math.Min(int.MaxValue,(long)Balance+amount)); PlayerPrefs.Save();
+        if (BalanceChanged != null) BalanceChanged();
     }
     public static void SpawnInLevel()
     {
@@ -36,6 +40,6 @@ public static class ShardWallet
         if(chance-1>10) PlayerPrefs.SetInt(ChanceKey,chance-1);
         Earn(1);
         GameHaptics.Play(HapticEvent.CriticalPickup);
-        if(World.hud!=null) World.hud.ShowMessage(GameLocalization.Format("SHARD PRICE",1)+"  +1");
+        if(World.hud!=null) World.hud.ShowMessage(GameLocalization.Text("HC PICKUP LARGE"));
     }
 }

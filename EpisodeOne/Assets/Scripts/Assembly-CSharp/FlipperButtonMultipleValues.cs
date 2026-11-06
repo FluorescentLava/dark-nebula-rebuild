@@ -61,6 +61,7 @@ public class FlipperButtonMultipleValues : MonoBehaviour
 		{
 			Align(tk2dSprite2.gameObject);
 		}
+		LegacyControlTextLayout.Bind(Value, ButtonLeft.GetComponent<Renderer>());
 		Enabled = _enabled;
 	}
 

@@ -32,6 +32,10 @@ public class DynamicFontSettings : ScriptableObject
 
 		public int Size;
 
+		// Optional authored glyph height, independent of raster resolution.
+		public float CapitalHeight;
+		public int ReferenceCharacter = 72;
+
 		public float LineSpacing;
 
 		public FilterMode FilterMode;

@@ -56,16 +56,62 @@ public class LeaderboardView : MonoBehaviour
 	private bool _isUsingLargeView;
 
 	private float lastMouseDownY;
+	private DynamicFont[] _chineseHeaders;
+	private tk2dTextMesh[] _englishHeaders;
 
 	public event HandlerDelegate EventDifficultyChanged;
 
 	private void Start()
 	{
+		_chineseHeaders = new DynamicFont[2];
+		_englishHeaders = new tk2dTextMesh[2];
+		GameObject[] headers = { GfxHeaderNormal, GfxHeaderExpert };
+		var font = Resources.Load<GameObject>("LeaderboardText/FontInputdata").GetComponent<tk2dFontData>();
+		for (int index = 0; index < headers.Length; index++)
+		{
+			GameObject header = headers[index];
+			DynamicFont label = header.GetComponentInChildren<DynamicFont>();
+			_chineseHeaders[index] = label;
+			label.SelectedEntry = 9;
+			label.FontColor = 3;
+			label.Refresh();
+			LegacyControlTextLayout.Bind(label, header.GetComponentInChildren<tk2dBaseSprite>().GetComponent<Renderer>());
+			var root = new GameObject("English header");
+			root.layer = header.layer;
+			root.transform.SetParent(header.transform, false);
+			float headerX = index == 0 ? -72.2f : 72.15619f;
+			float labelX = (headerX - header.transform.localPosition.x) / header.transform.localScale.x;
+			root.transform.localPosition = new Vector3(labelX, 0f, 82.856445f);
+			root.transform.localScale = new Vector3(.4994481f / header.transform.localScale.x, .4994481f, .4994481f);
+			Vector3 chinesePosition = label.transform.localPosition;
+			chinesePosition.x = labelX;
+			label.SetOriginalPos(chinesePosition);
+			var bitmap = root.AddComponent<tk2dTextMesh>();
+			bitmap.font = font;
+			bitmap.anchor = TextAnchor.MiddleCenter;
+			bitmap.SetLiteralText(index == 0 ? "NORMAL" : "EXPERT");
+			bitmap.ForceBuild();
+			_englishHeaders[index] = bitmap;
+		}
+		GamePreferences.Changed += RefreshHeaderLanguage;
+		RefreshHeaderLanguage();
 		_palringoButton.ButtonUpEvent += HandlePalringoButton;
 		_viewCamera = base.transform.parent.gameObject.GetComponentInChildren<Camera>();
 		FixAspect();
 		Init(UserSettings.Instance.IsExpertMode);
 	}
+
+	private void RefreshHeaderLanguage()
+	{
+		for (int index = 0; index < _chineseHeaders.Length; index++)
+		{
+			_chineseHeaders[index].gameObject.SetActive(GamePreferences.Chinese);
+			_chineseHeaders[index].Text = GameLocalization.Text(index == 0 ? "NORMAL" : "EXPERT");
+			_englishHeaders[index].gameObject.SetActive(!GamePreferences.Chinese);
+		}
+	}
+
+	private void OnDestroy() { GamePreferences.Changed -= RefreshHeaderLanguage; }
 
 	private void HandlePalringoButton(SimpleButton pButton)
 	{

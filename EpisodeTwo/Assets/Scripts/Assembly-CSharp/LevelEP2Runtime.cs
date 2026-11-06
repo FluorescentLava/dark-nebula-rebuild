@@ -633,6 +633,8 @@ public class LevelEP2Runtime : ILevelEP2
 
 	protected virtual void addTileMapEntity(TileMap tileMap, Transform pLayer, string layerName, int layerIndex)
 	{
+		bool tallViewport = (float)Screen.width / Mathf.Max(1, Screen.height)
+			< LegacyScreenFit.ReferenceAspect - .001f;
 		string text = "tileset_" + layerName;
 		GameObject tilemapAsset = GetTilemapAsset(text);
 		GameObject gameObject = null;
@@ -678,27 +680,32 @@ public class LevelEP2Runtime : ILevelEP2
 					tk2dSprite component = gameObject2.GetComponent<tk2dSprite>();
 					component.spriteId = num3;
                     if (LevelNum == 1 && layerName == "matrix_overlay" && num == 794
-                        && Screen.width < Screen.height * LegacyScreenFit.ReferenceAspect)
+                        && tallViewport)
                     {
                         // The recovered header contains a white padding tile.
                         // The extended neutral grid replaces this unused cap.
                         UnityEngine.Object.Destroy(gameObject2);
                         continue;
                     }
-                    if (LevelNum == 1 && Screen.width < Screen.height * LegacyScreenFit.ReferenceAspect
+                    if (LevelNum == 1 && tallViewport
                         && (layerName == "aztek_undergrowth" || (layerName == "aztek_walls" && num >= 794 && num <= 806)
                             || (layerName == "matrix_overlay" && num >= 795 && num <= 806)))
                         InsetForestTileUvs(component);
 					string batchName = layerName + "_batch";
                     if (LevelNum == 1 && layerName.StartsWith("aztek_") && pLayer.GetComponent<ParallaxLayer>().scrollValue == 1f && num < 794)
                         batchName = "MatrixSide_" + batchName;
+                    // Keep the recovered upper-forest blend separate from the
+                    // native stone ring and the newer lower scenery patches.
+                    if (LevelNum == 1 && num >= 794 && num <= 797 && layerName == "aztek_walls"
+                        && tallViewport)
+                        batchName = "ForestPortalCap_" + batchName;
                     BatchAdd(gameObject2, batchName, pLayer);
 				}
 			}
 		}
         if (LevelNum == 1)
         {
-            if (layerName == "matrix_overlay" && Screen.width < Screen.height * LegacyScreenFit.ReferenceAspect)
+            if (layerName == "matrix_overlay" && tallViewport)
             {
                 // Extend only the portal's neutral perimeter. The two earlier
                 // scan patches (rows 820/859) and the central ring are unchanged.
@@ -734,6 +741,28 @@ public class LevelEP2Runtime : ILevelEP2
                     extension.GetComponent<tk2dSprite>().spriteId = id;
                     InsetForestTileUvs(extension.GetComponent<tk2dSprite>());
                     BatchAdd(extension, "PortalOverlayExtension", pLayer);
+                }
+            }
+            if (layerName == "aztek_undergrowth" && tallViewport)
+            {
+                int first = 0;
+                while (first < tileMap.Height && tileMap.GetTile((ushort)(tileMap.Width / 2), (ushort)first) == TileMap.Empty) first++;
+                if (first + 20 > tileMap.Height) return;
+                // Restore the complete authored eight-row foliage cycle from
+                // eab4ef3. Padding on both sides also covers the rotating shot.
+                for (int row = first - 32; row < first + 16; row++)
+                for (int column = -8; column < tileMap.Width + 8; column++)
+                {
+                    if (row >= first && column >= 1 && column <= 5) continue;
+                    ushort srcX = (ushort)(1 + ((column - 1) % 5 + 5) % 5);
+                    ushort srcY = (ushort)(first + 12 + ((row - first) % 8 + 8) % 8);
+                    GameObject tile = UnityEngine.Object.Instantiate(tilemapAsset);
+                    tile.transform.SetParent(pLayer, false);
+                    tile.transform.rotation = Quaternion.LookRotation(Vector3.down);
+                    tile.transform.localPosition = new Vector3(column * 64f + 32f, pLayer.position.y, -row * 64f - 32f);
+                    tile.GetComponent<tk2dSprite>().spriteId = tileMap.GetTile(srcX, srcY);
+                    InsetForestTileUvs(tile.GetComponent<tk2dSprite>());
+                    BatchAdd(tile, "ForestCanopyPadding", pLayer);
                 }
             }
             return;

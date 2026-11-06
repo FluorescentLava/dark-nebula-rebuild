@@ -52,12 +52,13 @@ public class Language
 
 	public static string Get(string id, string replacement)
 	{
-		return Get(id).Replace("%d", replacement);
+		// Uppercase bitmap labels also uppercase the legacy printf placeholder.
+		return Get(id).Replace("%d", replacement).Replace("%D", replacement);
 	}
 
 	public static string Get(string id, int replacement)
 	{
-		return Get(id).Replace("%d", replacement.ToString());
+		return Get(id, replacement.ToString());
 	}
 
 	private static string GetLanguageFileName(SystemLanguage pLanguage)

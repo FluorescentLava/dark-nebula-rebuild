@@ -7,7 +7,8 @@ public sealed class OriginalVesselScreen : MonoBehaviour
     IngameOptionScreen owner;
     FlipperButton selector;
     SimpleButton action, back;
-    SimpleText details;
+    SimpleText details, balance;
+    GameObject priceDisplay;
     tk2dSprite preview, lockedIcon;
     int[] order;
     int selected;
@@ -54,10 +55,9 @@ public sealed class OriginalVesselScreen : MonoBehaviour
         back=Copy(source.BtnGoBack,"Back",-215).GetComponent<SimpleButton>();
         action.ButtonUpEvent+=PurchaseOrEquip;
         back.ButtonUpEvent+=Return;
-        details=Instantiate(selector.Value,transform).GetComponent<SimpleText>();
-        details.transform.SetParent(transform,false);
-        details.transform.localPosition=new Vector3(0,-85,0);
-        details.GetComponent<tk2dTextMesh>().anchor=TextAnchor.MiddleCenter;
+        balance=CreateShardDisplay("Shard balance",new Vector3(0,235,0),true);
+        details=CreateShardDisplay("Shard price",new Vector3(0,-85,0),false);
+        priceDisplay=details.transform.parent.gameObject;
         var art=new GameObject("Vessel preview");art.layer=source.gameObject.layer;
         art.transform.SetParent(transform,false);art.transform.localPosition=new Vector3(0,35,0);
         preview=tk2dSprite.AddComponent(art,VesselSkins.Collection(selected),24);
@@ -66,7 +66,30 @@ public sealed class OriginalVesselScreen : MonoBehaviour
         lockedIcon=lockArt.GetComponent<tk2dSprite>();
         var fit=gameObject.AddComponent<MenuContentFit>();fit.Camera=back.viewCamera!=null?back.viewCamera:Camera.main;
         GamePreferences.Changed+=Refresh;
+        ShardWallet.BalanceChanged+=RefreshDetails;
         Refresh();
+    }
+    SimpleText CreateShardDisplay(string name,Vector3 position,bool background)
+    {
+        var root=new GameObject(name);root.layer=gameObject.layer;
+        root.transform.SetParent(transform,false);root.transform.localPosition=position;
+        var collection=Resources.Load<GameObject>("VesselLockArt/VesselLockCollection").GetComponent<tk2dSpriteCollectionData>();
+        if(background)
+        {
+            var plate=new GameObject("Counter background");plate.layer=gameObject.layer;
+            plate.transform.SetParent(root.transform,false);plate.transform.localPosition=new Vector3(0,0,1);
+            var art=tk2dSprite.AddComponent(plate,collection,collection.GetSpriteIdByName("CurrencyCounterBackground"));
+            art.scale=new Vector3(.5f,.5f,1);
+        }
+        var icon=new GameObject("Shard icon");icon.layer=gameObject.layer;
+        icon.transform.SetParent(root.transform,false);icon.transform.localPosition=new Vector3(background?-95:-40,0,0);
+        var shard=tk2dSprite.AddComponent(icon,collection,collection.GetSpriteIdByName("HardCurrencyIcon"));
+        shard.scale=new Vector3(.5f,.5f,1);
+        var label=Instantiate(selector.Value,root.transform).GetComponent<SimpleText>();
+        label.name="Amount";label.transform.localPosition=new Vector3(background?10:15,0,-1);
+        var mesh=label.GetComponent<tk2dTextMesh>();mesh.anchor=TextAnchor.MiddleCenter;
+        mesh.color=new Color(0,1,0,1);
+        return label;
     }
     void Choose(int position) { selected=order[position];RefreshDetails(); }
     public void Browse(int delta)
@@ -86,8 +109,9 @@ public sealed class OriginalVesselScreen : MonoBehaviour
     void RefreshDetails()
     {
         string id=AvatarUnlocks.Ids[selected];bool owned=AvatarUnlocks.IsUnlocked(id);
-        string info=owned?GameLocalization.Format("SHARD BALANCE",AvatarUnlocks.Balance):AvatarUnlocks.Condition(id);
-        details.SetText(info);
+        balance.SetLiteralText(AvatarUnlocks.Balance.ToString());
+        details.SetLiteralText(AvatarUnlocks.Price(id).ToString());
+        priceDisplay.SetActive(!owned);
         string caption=!owned?"BUY":selected==VesselSkins.Selected?"EQUIPPED":"EQUIP";
         action.GetComponentInChildren<SimpleText>().SetStringID(caption);
         action.enabled=owned || AvatarUnlocks.Balance>=AvatarUnlocks.Price(id);
@@ -114,5 +138,5 @@ public sealed class OriginalVesselScreen : MonoBehaviour
         Destroy(gameObject);
     }
     void Update() { if(Input.GetKeyUp(KeyCode.Escape))Close(); }
-    void OnDestroy() { GamePreferences.Changed-=Refresh; }
+    void OnDestroy() { GamePreferences.Changed-=Refresh;ShardWallet.BalanceChanged-=RefreshDetails; }
 }

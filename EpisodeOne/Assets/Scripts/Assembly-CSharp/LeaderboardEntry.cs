@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using FLD.JSON;
+using FLD;
 using Palringo;
 using UnityEngine;
 
@@ -37,24 +39,75 @@ public class LeaderboardEntry : MonoBehaviour
 
 	private bool _haveProfileImage;
 	private DynamicFont _localNameText;
+	private DynamicFont _dateText;
+	private tk2dTextMesh _bitmapTime;
+	private tk2dTextMesh _bitmapDate;
+	private static tk2dFontData leaderboardFont;
+	private static tk2dSpriteCollectionData leaderboardStars;
+
+	private tk2dTextMesh CreateBitmapLabel(string name, Vector3 position, float scale, TextAnchor anchor)
+	{
+		if (leaderboardFont == null)
+			leaderboardFont = Resources.Load<GameObject>("LeaderboardText/FontInputdata").GetComponent<tk2dFontData>();
+		var root = new GameObject(name);
+		root.layer = gameObject.layer;
+		root.transform.SetParent(transform, false);
+		root.transform.localPosition = position;
+		root.transform.localScale = Vector3.one * scale;
+		var label = root.AddComponent<tk2dTextMesh>();
+		label.font = leaderboardFont;
+		label.anchor = anchor;
+		label.maxChars = 64;
+		// Awake runs before a runtime-created label has a font. Build once after
+		// assigning it so subsequent text changes use an initialized mesh/queue.
+		label.ForceBuild();
+		return label;
+	}
 
 	public void SetEntry(LeaderboardEntryVO pEntry, int pListposition)
 	{
 		// The original SysFont renderer depends on a removed Android Java plugin.
-		// Reuse the game's Unity font renderer for the local player's label.
+		// Keep the portrait, with the same name/time/date hierarchy as Episode Two.
 		_nameText.gameObject.SetActive(false);
 		if (_localNameText == null)
 		{
 			_localNameText = UnityEngine.Object.Instantiate(_timeText, _timeText.transform.parent);
 			_localNameText.name = "Local score name";
-			Vector3 labelPosition = _timeText.transform.localPosition;
-			labelPosition.x = -85f;
-			_localNameText.SetOriginalPos(labelPosition);
+			_localNameText.SetOriginalPos(new Vector3(-110f, 5.3812775f, -1f));
 			_localNameText.Anchor = TextAnchor.MiddleLeft;
 			_localNameText.Alignment = TextAlignment.Left;
 			_localNameText.Localize = false;
 			_localNameText.Wrapping = DynamicFont.WrapType.SHRINK;
-			_localNameText.WrapWidth = 150f;
+			_localNameText.SelectedEntry = 6;
+			_localNameText.WrapWidth = 148f;
+			_dateText = UnityEngine.Object.Instantiate(_timeText, _timeText.transform.parent);
+			_dateText.name = "Best time label";
+			_dateText.SetOriginalPos(new Vector3(140.49313f, -8.538132f, -1f));
+			_dateText.SelectedEntry = 8;
+			_dateText.FontColor = 11;
+			_dateText.transform.localScale = Vector3.one * .9f;
+			_dateText.Localize = false;
+			_dateText.Wrapping = DynamicFont.WrapType.SHRINK;
+			_dateText.WrapWidth = 138f;
+			// Reuse Episode Two's actual bitmap face, scale and authored anchors.
+			// Dynamic nicknames keep full Unicode support alongside the portrait.
+			_timeText.name = "Legacy time";
+			_timeText.gameObject.SetActive(false);
+			_bitmapTime = CreateBitmapLabel("Time", new Vector3(58.61621f, 5.5825195f, 0f), .402484f, TextAnchor.MiddleLeft);
+			_bitmapDate = CreateBitmapLabel("Score date", new Vector3(140.49313f, -8.373947f, 0f), .32836974f, TextAnchor.MiddleRight);
+			_bitmapDate.color = new Color(.46268654f, .46268654f, .46268654f, 1f);
+			_bitmapDate.color2 = new Color(.42537314f, .42537314f, .42537314f, 1f);
+			_bitmapDate.useGradient = true;
+			_bitmapDate.inlineStyling = true;
+			_bitmapDate.kerning = true;
+			if (leaderboardStars == null)
+				leaderboardStars = Resources.Load<GameObject>("LeaderboardText/LeaderboardStars").GetComponent<tk2dSpriteCollectionData>();
+			GfxStar.GetComponent<tk2dSprite>().SetSprite(leaderboardStars, "Skillstars/2");
+			Vector3 portraitPosition = _profileImage.localPosition;
+			portraitPosition.x = -130f;
+			_profileImage.localPosition = portraitPosition;
+			_localNameText.FontRefreshed += AlignLocalRow;
+			_dateText.FontRefreshed += AlignLocalRow;
 		}
 		Entry = pEntry;
 		base.transform.localPosition = new Vector3(0f, -18f + (float)pListposition * -36f, 0f);
@@ -73,15 +126,17 @@ public class LeaderboardEntry : MonoBehaviour
 		}
 		_userIDText.gameObject.SetActive(flag);
 		_localNameText.gameObject.SetActive(flag);
+		_dateText.gameObject.SetActive(flag && pEntry.date == default(DateTime));
+		_bitmapDate.gameObject.SetActive(flag && pEntry.date != default(DateTime));
 		_profileImage.gameObject.SetActive(flag);
 		_positionText.gameObject.SetActive(flag);
-		_timeText.gameObject.SetActive(flag);
+		_bitmapTime.gameObject.SetActive(flag);
 		GfxStar.GetComponent<Renderer>().enabled = flag;
 		if (flag)
 		{
 			if (string.IsNullOrEmpty(pEntry.name))
 			{
-				pEntry.name = "DUMMY NAME";
+				pEntry.name = "PLAYER".Localize();
 			}
 			if (DarkNebulaPalringo.IsAuthorized)
 			{
@@ -93,10 +148,12 @@ public class LeaderboardEntry : MonoBehaviour
 				_positionText.Text = string.Empty;
 				_userIDText.gameObject.SetActive(false);
 			}
-			_localNameText.SetLiteralText(DarkNebulaPalringo.IsAuthorized ? pEntry.name :
-				(pListposition + 1) + ". " + (pEntry.date == default(DateTime) ? "LOCAL BEST" :
-				pEntry.date.ToString("MM/dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)));
-			_timeText.Text = LevelCompleteSection.ToTimeString(pEntry.time);
+			_localNameText.SetLiteralText((DarkNebulaPalringo.IsAuthorized ? pEntry.position : pListposition + 1) + ". " + pEntry.name);
+			_bitmapTime.text = LevelCompleteSection.ToTimeString(pEntry.time);
+			_bitmapTime.Commit();
+			_bitmapDate.text = "^5" + pEntry.date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture).ToUpperInvariant();
+			_bitmapDate.Commit();
+			_dateText.SetLiteralText("BEST TIME".Localize());
 			if (pEntry.star >= 0 && pEntry.expert)
 			{
 				GfxStar.GetComponentInChildren<tk2dSprite>().spriteId = GfxStar.GetComponentInChildren<tk2dSprite>().GetSpriteIdByName("SkillstarsExpert/" + pEntry.star);
@@ -127,23 +184,13 @@ public class LeaderboardEntry : MonoBehaviour
 
 	private void AlignLocalRow()
 	{
-		Renderer profile=_profileImage.GetComponent<Renderer>();
-		if(profile==null)return;
-		float center=profile.bounds.center.y;
-		foreach(DynamicFont label in new[]{_localNameText,_timeText})
+		if (_dateText == null) return;
+		foreach (DynamicFont label in new[] { _localNameText, _dateText })
 		{
-			Renderer renderer=label.GetComponent<Renderer>();
-			if(renderer==null)continue;
-			Vector3 position=label.transform.position;position.y+=center-renderer.bounds.center.y;
-			label.SetOriginalPos(label.transform.parent.InverseTransformPoint(position));
-		}
-		Renderer timeRenderer=_timeText.GetComponent<Renderer>();
-		Renderer star=GfxStar.GetComponent<Renderer>();
-		if(timeRenderer!=null && star!=null)
-		{
-			Vector3 position=GfxStar.transform.position;
-			position.x+=timeRenderer.bounds.min.x-star.bounds.extents.x-4f-star.bounds.center.x;
-			position.y+=center-star.bounds.center.y;GfxStar.transform.position=position;
+			Vector3 position = label.transform.position;
+			float y = label == _dateText ? -8.538132f : 5.3812775f;
+			position.y += transform.TransformPoint(new Vector3(0f, y, 0f)).y - label.InkCenterWorldY;
+			label.transform.position = position;
 		}
 	}
 

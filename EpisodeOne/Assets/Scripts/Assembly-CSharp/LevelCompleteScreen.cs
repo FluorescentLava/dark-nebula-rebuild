@@ -47,7 +47,8 @@ public class LevelCompleteScreen : MonoBehaviour
 
 	private CameraFade fade;
 
-	private TouchScreenKeyboard keyboard;
+	private PlayerNameInput nameInput;
+	private bool scoreSaved;
 
 	private LevelCompleteSection[] sections;
 
@@ -121,6 +122,12 @@ public class LevelCompleteScreen : MonoBehaviour
 		obj8.Tick = (Action)Delegate.Combine(obj8.Tick, new Action(OnTick));
 		ContinueButton.Text = "CONTINUE".Localize();
 		ContinueButton.ButtonUpEvent += OnContinue;
+		foreach (tk2dSprite sprite in GetComponentsInChildren<tk2dSprite>(true))
+		{
+			if (sprite.Collection.GetSpriteIdByName("InputField", -1) < 0) continue;
+			nameInput = PlayerNameInput.Create(transform, ContinueButton, sprite.Collection);
+			break;
+		}
 		SetEnabled();
 	}
 
@@ -300,11 +307,6 @@ public class LevelCompleteScreen : MonoBehaviour
 		if (Result.LevelNum < 1 || Result.LevelNum > 23 || !LocalLeaderboard.IsValidTime(Result.CompletionTime)) return;
 		Result.Star = GetStarValue(Result.CompletionTime, Result.LevelNum, Result.Expert);
 		PreviousBestCompletionTime = UserProgress.Instance.GetBestTime(Result.LevelNum, Result.Expert);
-		new LocalLeaderboard().AddEntry(new LeaderboardEntryVO {
-			date = DateTime.Now, time = Result.CompletionTime,
-			name = UserSettings.Instance.GetUserName(), expert = Result.Expert,
-			star = (int)Result.Star, level = Result.LevelNum
-		}, Result.Expert, Result.LevelNum);
 		if (PreviousBestCompletionTime == 0f)
 		{
 			PreviousBestCompletionTime = Result.CompletionTime;
@@ -391,8 +393,22 @@ public class LevelCompleteScreen : MonoBehaviour
 	{
 		if (!_initialized || !_done || _continuing) return;
 		_continuing = true;
+		if (nameInput != null) nameInput.Commit();
+		SaveLocalScore();
 		Invoke("OnGotoLevelCompleteLeaderboard", 0.6f);
 		fade.FadeOut();
+	}
+
+	private void SaveLocalScore()
+	{
+		// Save after confirming the nickname, once even if Continue is tapped twice.
+		if (scoreSaved || Result.LevelNum < 1 || Result.LevelNum > 23 || !LocalLeaderboard.IsValidTime(Result.CompletionTime)) return;
+		scoreSaved = true;
+		new LocalLeaderboard().AddEntry(new LeaderboardEntryVO {
+			date = DateTime.Now, time = Result.CompletionTime,
+			name = UserSettings.Instance.GetUserName(), expert = Result.Expert,
+			star = (int)Result.Star, level = Result.LevelNum
+		}, Result.Expert, Result.LevelNum);
 	}
 
 	private void OnGotoLevelCompleteLeaderboard()

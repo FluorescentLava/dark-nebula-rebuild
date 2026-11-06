@@ -256,6 +256,9 @@ public abstract class tk2dBaseSprite : MonoBehaviour, ISpriteCollectionForceBuil
 	protected void UpdateCollider()
 	{
 		tk2dSpriteDefinition tk2dSpriteDefinition2 = collection.spriteDefinitions[_spriteId];
+		// UI buttons own their hit boxes, including those copied at runtime.
+		// A sprite without collision must not collapse that input collider.
+		if (tk2dSpriteDefinition2.colliderType == tk2dSpriteDefinition.ColliderType.None && GetComponent<SimpleButton>() != null) return;
 		if (tk2dSpriteDefinition2.colliderType == tk2dSpriteDefinition.ColliderType.Box && boxCollider == null)
 		{
 			boxCollider = base.gameObject.GetComponent<BoxCollider>();
@@ -282,6 +285,7 @@ public abstract class tk2dBaseSprite : MonoBehaviour, ISpriteCollectionForceBuil
 	protected void CreateCollider()
 	{
 		tk2dSpriteDefinition tk2dSpriteDefinition2 = collection.spriteDefinitions[_spriteId];
+		if (tk2dSpriteDefinition2.colliderType == tk2dSpriteDefinition.ColliderType.None && GetComponent<SimpleButton>() != null) return;
 		if (tk2dSpriteDefinition2.colliderType == tk2dSpriteDefinition.ColliderType.Unset)
 		{
 			return;

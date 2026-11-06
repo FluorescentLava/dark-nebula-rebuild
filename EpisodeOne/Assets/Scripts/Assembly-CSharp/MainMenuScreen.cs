@@ -95,8 +95,14 @@ public class MainMenuScreen : MonoBehaviour
         _quitButton.Text="EPISODE TWO";
         _quitButton.SetSpriteNames("ep2_button/1","ep2_button/0","ep2_button/0");
         _quitButton.ButtonUpEvent+=onEpisodeTwo;
+        SimpleButton achievements = Object.Instantiate(_leaderboardsButton, _leaderboardsButton.transform.parent);
+        achievements.name = "Achievements";
+        achievements.Text = "ACHIEVEMENTS";
+        achievements.targetObject = null;
+        achievements.messageName = string.Empty;
+        achievements.ButtonUpEvent += onAchievements;
         var rows=gameObject.AddComponent<MenuRowLayout>();
-        rows.Rows=new[]{newGame.gameObject,_playGameButton.gameObject,_optionsButton.gameObject,_leaderboardsButton.gameObject,_quitButton.gameObject};
+        rows.Rows=new[]{newGame.gameObject,_playGameButton.gameObject,_optionsButton.gameObject,_leaderboardsButton.gameObject,achievements.gameObject,_quitButton.gameObject};
 
 		_alertScreen = GetComponentInChildren<Alert>();
 		_alertScreen.gameObject.SetActive(false);
@@ -159,6 +165,12 @@ public class MainMenuScreen : MonoBehaviour
 		{
 			StartCoroutine(LoadLevel("LevelSelect"));
 		}
+	}
+
+	private void onAchievements(SimpleButton source)
+	{
+		AchievementsScreen.Open(_optionScreen, () => SetEnabled(true));
+		SetEnabled(false);
 	}
 
 	private void Confirm(string stringID)

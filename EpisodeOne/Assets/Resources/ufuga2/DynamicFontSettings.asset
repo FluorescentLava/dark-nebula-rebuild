@@ -24,6 +24,7 @@ MonoBehaviour:
   - {r: 0.8367629, g: 0.97794116, b: 0.7550281, a: 1}
   - {r: 0.63235295, g: 0.0697448, b: 0.0697448, a: 1}
   - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
   Entries:
   - Name: Size7
     Font: {fileID: 12800000, guid: 7565db49c6675794cbb289c56fd90534, type: 3}
@@ -104,6 +105,38 @@ MonoBehaviour:
     Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     Style: 0
     Size: 5
+    LineSpacing: 0.65
+    FilterMode: 1
+    Overrides: []
+  - Name: LeaderboardName
+    Font: {fileID: 12800000, guid: 8d1d06729bb94668ae78da6e76d2ae65, type: 3}
+    Style: 0
+    Size: 6
+    CapitalHeight: 15.093157
+    ReferenceCharacter: 20013
+    LineSpacing: 0.65
+    FilterMode: 1
+    Overrides: []
+  - Name: LeaderboardTime
+    Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    Style: 1
+    Size: 5
+    LineSpacing: 0.65
+    FilterMode: 1
+    Overrides: []
+  - Name: LeaderboardDate
+    Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    Style: 1
+    Size: 5
+    LineSpacing: 0.65
+    FilterMode: 1
+    Overrides: []
+  - Name: LeaderboardHeader
+    Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    Style: 1
+    Size: 8
+    CapitalHeight: 12.486202
+    ReferenceCharacter: 72
     LineSpacing: 0.65
     FilterMode: 1
     Overrides: []

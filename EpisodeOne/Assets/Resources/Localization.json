@@ -1209,6 +1209,101 @@
       "key": "BUY",
       "en": "Buy",
       "zh": "购买"
+    },
+    {
+      "key": "ACHIEVEMENTS",
+      "en": "Achievements",
+      "zh": "成就"
+    },
+    {
+      "key": "UNLOCKED",
+      "en": "Unlocked",
+      "zh": "已解锁"
+    },
+    {
+      "key": "ACHIEVEMENT SUMMARY",
+      "en": "{0} / {1} UNLOCKED",
+      "zh": "已解锁 {0} / {1}"
+    },
+    {
+      "key": "ACHIEVEMENT PROGRESS",
+      "en": "GOLD STARS {0} / {1}",
+      "zh": "金星 {0} / {1}"
+    },
+    {
+      "key": "ACHIEVEMENT UNLOCKED",
+      "en": "Achievement unlocked",
+      "zh": "成就解锁"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.0",
+      "en": "Get your first gold star",
+      "zh": "获得首颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.1",
+      "en": "Get 4 gold stars",
+      "zh": "获得 4 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.2",
+      "en": "Get 7 gold stars",
+      "zh": "获得 7 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.3",
+      "en": "Get 10 gold stars",
+      "zh": "获得 10 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.4",
+      "en": "Get 13 gold stars",
+      "zh": "获得 13 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.5",
+      "en": "Get 16 gold stars",
+      "zh": "获得 16 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.6",
+      "en": "Get 19 gold stars",
+      "zh": "获得 19 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.7",
+      "en": "Get 22 gold stars",
+      "zh": "获得 22 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.8",
+      "en": "Get 25 gold stars",
+      "zh": "获得 25 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.9",
+      "en": "Get 28 gold stars",
+      "zh": "获得 28 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.10",
+      "en": "Get 31 gold stars",
+      "zh": "获得 31 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.11",
+      "en": "Get 34 gold stars",
+      "zh": "获得 34 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.12",
+      "en": "Get 37 gold stars",
+      "zh": "获得 37 颗金星"
+    },
+    {
+      "key": "ACHIEVEMENT.GOLDSTARS.13",
+      "en": "Get 40 gold stars",
+      "zh": "获得 40 颗金星"
     }
   ]
 }

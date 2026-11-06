@@ -4,7 +4,7 @@
 
 A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for modern mobile devices, combining content recovered from the iOS and Android releases.
 
-## Features (0.3.6)
+## Features (0.3.7)
 
 ### Core features
 
@@ -31,11 +31,19 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 - [x] Background sensor calibration before each level starts.
 - [x] WASD controls for Windows Unity debugging, excluded from Release builds.
 
+## 0.3.7 update
+
+Episode One's leaderboard retains its portraits and reuses Episode Two's time, date, English header font and star artwork, matching their sizes, colors and placement. Multiple-value selectors now center their visible text, fixing raised level captions. The completion screen now accepts and saves a nickname before adding that run to the local Top 10. A new local achievements browser shows all fourteen original gold-star milestones, badges and unlock progress in English and Simplified Chinese.
+
+Episode Two's vessel screen now uses the original shard icon and balance panel, and copied menu buttons retain their input hit areas. Shard pickup text uses the existing pickup wording, and remaining-life substitutions work in English. The temple transition restores the earlier upper canopy padding and forest-cap blend while retaining the current lower scenery patches and native camera motion.
+
 ## 0.3.6 update
 
 Episode Two's moving and rotating mechanisms now keep their position when checkpoint difficulty changes, fixing spikes that jumped back along their path while visible on tall screens. Sleeping sine obstacles restore their update and physics state correctly. Music imports are validated before Android packaging, portal scenery uses two small masked crops attached to the native terrain, and shockwave scans complete outside the tall viewport.
 
 The iOS packages are unsigned and require an Apple-issued signing certificate and provisioning profile before installation on a regular iPhone or iPad.
+
+iOS release filenames use `DarkNebula-Episode1-<version>-iOS.ipa` and `DarkNebula-Episode2-<version>-iOS.ipa`, without an `unsigned` suffix. Signing status is described in the release notes.
 
 ## Build from source
 

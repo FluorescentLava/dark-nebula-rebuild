@@ -85,7 +85,11 @@ public class DarkNebulaAchievements
 		LastSyncedGoldStarCount = 0;
 	}
 
-	private int GetGoldStarsCount()
+	public int AchievementCount { get { return GoldStarAchievements.Length; } }
+	public int GetStarsRequired(int index) { return GoldStarAchievements[index].StarsRequired; }
+	public string GetIconId(int index) { return GoldStarAchievements[index].IconId; }
+
+	public int GetGoldStarsCount()
 	{
 		int num = 23;
 		int num2 = 0;

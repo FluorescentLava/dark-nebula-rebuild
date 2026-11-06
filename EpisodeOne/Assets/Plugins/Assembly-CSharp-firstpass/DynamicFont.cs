@@ -17,11 +17,14 @@ public class DynamicFont : MonoBehaviour
 	private TextMesh _textMesh;
 
     private static Font leaderboardChineseFont;
+    private static Font leaderboardBoldFont;
 
     private static Font ChineseFontFor(DynamicFontSettings.Entry entry)
     {
         // The leaderboard's Arial/ArialSmall family uses a normal sans face;
         // BankGothic menu labels keep their accepted geometric Chinese face.
+        if (entry.Name.StartsWith("Leaderboard"))
+            return leaderboardBoldFont ?? (leaderboardBoldFont = Resources.Load<Font>("Fonts/NotoSansSC-Bold"));
         if (entry.Name == "Arial" || entry.Name == "ArialSmall")
             return leaderboardChineseFont ?? (leaderboardChineseFont = Resources.Load<Font>("Fonts/NotoSansSC-Regular"));
         return GameLocalization.ChineseFont;
@@ -339,6 +342,7 @@ public class DynamicFont : MonoBehaviour
 
     private static void AlignChineseText(TextMesh text, DynamicFontSettings.Entry entry, float scale)
     {
+        if (entry.CapitalHeight > 0f) return;
         if (!Application.isPlaying || text.font != ChineseFontFor(entry) || string.IsNullOrEmpty(text.text)) return;
         Renderer renderer = text.GetComponent<Renderer>();
         float chineseLow, chineseHigh;
@@ -501,6 +505,27 @@ public class DynamicFont : MonoBehaviour
             lineSpacing = 1.15f;
         }
         font.material.mainTexture.filterMode = filterMode;
+		if (Application.isPlaying && pEntry.CapitalHeight > 0f)
+		{
+			const int rasterSize = 64;
+			bool translated = font != referenceFont;
+			FontStyle style = translated ? FontStyle.Normal : pEntry.Style;
+			char reference = translated ? '\u4e2d' : (char)pEntry.ReferenceCharacter;
+			font.RequestCharactersInTexture(reference.ToString(), rasterSize, style);
+			CharacterInfo glyph;
+			if (font.GetCharacterInfo(reference, out glyph, rasterSize, style) && glyph.maxY > glyph.minY)
+			{
+				float height = pEntry.CapitalHeight * (translated ? 1.5f : 1f);
+				pTextMesh.font = font;
+				pTextMesh.GetComponent<Renderer>().sharedMaterial = font.material;
+				pTextMesh.fontStyle = style;
+				pTextMesh.characterSize = height * pScale * 10f / (glyph.maxY - glyph.minY);
+				pTextMesh.fontSize = rasterSize;
+				pTextMesh.lineSpacing = lineSpacing;
+				pTextMesh.richText = true;
+				return;
+			}
+		}
 		int num = ((!Application.isPlaying) ? 768 : Screen.height);
 		float num2 = 100f / ((float)num / 2f);
 		num2 = Mathf.Round(num2 * 1000f) / 1000f;

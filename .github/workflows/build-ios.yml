@@ -85,13 +85,13 @@ jobs:
           payload="$build_dir/Payload"
           mkdir -p "$payload" Builds/IPA
           ditto "${apps[0]}" "$payload/$(basename "${apps[0]}")"
-          ditto -c -k --norsrc --keepParent "$payload" "Builds/IPA/DarkNebula-$PROJECT-unsigned.ipa"
+          ditto -c -k --norsrc --keepParent "$payload" "Builds/IPA/DarkNebula-$PROJECT-iOS.ipa"
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: DarkNebula-${{ matrix.project }}-iOS-unsigned
-          path: Builds/IPA/DarkNebula-${{ matrix.project }}-unsigned.ipa
+          name: DarkNebula-${{ matrix.project }}-iOS
+          path: Builds/IPA/DarkNebula-${{ matrix.project }}-iOS.ipa
           if-no-files-found: error
           compression-level: 0
           retention-days: 14

@@ -4,7 +4,7 @@
 
 A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for modern mobile devices, combining content recovered from the iOS and Android releases.
 
-## Features (0.3.4)
+## Features (0.3.5)
 
 ### Core features
 
@@ -31,9 +31,9 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 - [x] Background sensor calibration before each level starts.
 - [x] WASD controls for Windows Unity debugging, excluded from Release builds.
 
-## 0.3.4 update
+## 0.3.5 update
 
-Episode Two's portal scenery follows the bridge's actual layer, keeping the fill attached to the road throughout the camera movement. Story movies use two-step skip confirmation with a smaller, raised gray prompt in the existing geometric Chinese and BankGothic menu fonts. Every accepted New Game replays the intro before starting the first level; cancelling the confirmation preserves progress, and Continue keeps its existing route. The 0.3.3 release remains available separately.
+Episode Two's portal scenery now joins the native cliff and ground on both exposed sides, staying on the bridge plane throughout the camera ascent and rotation. Episode Two audio preserves paused playback and clears stale fades and pooled state, keeping music and effects consistent through movies, pauses and scene changes. Episode One upgrades again use the original ownership conditions for each level and difficulty; saved selections activate only owned upgrades. Existing progress and preferences are preserved. The 0.3.4 release remains available separately.
 
 The iOS packages are unsigned and require an Apple-issued signing certificate and provisioning profile before installation on a regular iPhone or iPad.
 

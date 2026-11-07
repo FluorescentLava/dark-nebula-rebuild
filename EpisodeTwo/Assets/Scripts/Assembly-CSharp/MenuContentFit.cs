@@ -14,6 +14,17 @@ public class MenuContentFit : MonoBehaviour
     int settleUntil;
     void OnEnable(){lastSize=-1f;settleUntil=Time.frameCount+15;}
 
+    public void SetControlLayout(Transform control, Vector3 position, Vector3 scale)
+    {
+        // Localized panels can change their authored layout between visits.
+        // Retain that layout when the next fit restores its cached controls.
+        int index=children.IndexOf(control);
+        if(index>=0){positions[index]=position;scales[index]=scale;}
+        control.localPosition=position;
+        control.localScale=scale;
+        lastSize=-1f;settleUntil=Mathf.Max(settleUntil,Time.frameCount+15);
+    }
+
     bool IsControl(Renderer r)
     {
         if(!r.enabled || r is ParticleSystemRenderer)return false;

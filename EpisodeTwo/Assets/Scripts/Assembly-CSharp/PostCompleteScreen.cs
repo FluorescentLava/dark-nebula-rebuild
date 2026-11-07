@@ -48,6 +48,7 @@ public class PostCompleteScreen : MonoBehaviour
 		{
 			simpleText.UseCurrentTextAsStringID();
 		}
+		Flipper.SetActive(true);
 		Flipper.GetComponent<FlipperButton>().Init(true, "LOCAL", "GLOBAL", "LEADERBOARD");
 		Flipper.GetComponent<FlipperButton>().UseTitleOnly();
 		ButtonNextLevel.GetComponent<SimpleButton>().ButtonUpEvent += delegate
@@ -149,6 +150,7 @@ public class PostCompleteScreen : MonoBehaviour
 		SetEnabled(false);
 		_confirmScreen.gameObject.SetActive(true);
 		_leaderboardView.gameObject.SetActive(false);
+		Flipper.SetActive(false);
 		if (lastYes != null)
 		{
 			_confirmScreen.EventYES -= lastYes;
@@ -168,6 +170,7 @@ public class PostCompleteScreen : MonoBehaviour
 	{
 		_confirmScreen.gameObject.SetActive(false);
 		_leaderboardView.gameObject.SetActive(true);
+		Flipper.SetActive(true);
 		SetEnabled(true);
 	}
 

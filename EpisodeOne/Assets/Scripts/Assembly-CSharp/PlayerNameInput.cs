@@ -10,6 +10,12 @@ public sealed class PlayerNameInput : MonoBehaviour
     string value, beforeEditing;
     bool desktopEditing;
     Vector3 originalPosition;
+    tk2dSprite background;
+    Renderer[] textRenderers;
+    MaterialPropertyBlock textTint;
+    Collider hitArea;
+    float revealStarted;
+    bool revealing;
 
     public static PlayerNameInput Create(Transform parent, SimpleButton template, tk2dSpriteCollectionData collection)
     {
@@ -18,7 +24,7 @@ public sealed class PlayerNameInput : MonoBehaviour
         root.transform.SetParent(parent, false);
         root.transform.localPosition = new Vector3(0f, -158f, -40f);
         var input = root.AddComponent<PlayerNameInput>();
-        tk2dSprite.AddComponent(root, collection, collection.GetSpriteIdByName("InputField"));
+        input.background = tk2dSprite.AddComponent(root, collection, collection.GetSpriteIdByName("InputField"));
         input.button = root.AddComponent<SimpleButton>();
         input.button.viewCamera = template.viewCamera;
         input.button.buttonUpSprite = input.button.buttonDownSprite = input.button.buttonPressedSprite = "InputField";
@@ -27,6 +33,7 @@ public sealed class PlayerNameInput : MonoBehaviour
         if (hit == null) hit = root.AddComponent<BoxCollider>();
         hit.center = Vector3.zero;
         hit.size = new Vector3(197f, 26f, 2f);
+        input.hitArea = hit;
         input.button.ButtonUpEvent += input.BeginEditing;
         input.label = Instantiate(template.GetComponentInChildren<DynamicFont>(), root.transform);
         input.label.name = "Player nickname";
@@ -48,12 +55,35 @@ public sealed class PlayerNameInput : MonoBehaviour
         title.SetOriginalPos(new Vector3(0f, 23f, -1f));
         title.Text = "LEADERBOARD NAME";
         LegacyControlTextLayout.Bind(input.label, root.GetComponent<Renderer>());
+        input.textRenderers = new[] { input.label.GetComponent<Renderer>(), title.GetComponent<Renderer>() };
+        input.textTint = new MaterialPropertyBlock();
+        root.SetActive(false);
         return input;
+    }
+
+    public void Reveal(bool immediate = false)
+    {
+        gameObject.SetActive(true);
+        revealing = !immediate;
+        revealStarted = Time.unscaledTime;
+        SetOpacity(immediate ? 1f : 0f);
+    }
+
+    void SetOpacity(float opacity)
+    {
+        Color color = background.color;
+        color.a = opacity;
+        background.color = color;
+        // DynamicFont stores its text color in rich-text tags. Tint the
+        // renderer so the same fade also covers those tagged glyphs.
+        textTint.SetColor("_Color", new Color(1f, 1f, 1f, opacity));
+        foreach (Renderer renderer in textRenderers) renderer.SetPropertyBlock(textTint);
+        hitArea.enabled = opacity >= 1f;
     }
 
     void BeginEditing(SimpleButton source)
     {
-        if (keyboard != null || desktopEditing) return;
+        if (revealing || keyboard != null || desktopEditing) return;
         beforeEditing = value;
         if (TouchScreenKeyboard.isSupported)
         {
@@ -67,6 +97,12 @@ public sealed class PlayerNameInput : MonoBehaviour
 
     void Update()
     {
+        if (revealing)
+        {
+            float opacity = Mathf.Clamp01((Time.unscaledTime - revealStarted) / 0.3f);
+            SetOpacity(opacity);
+            revealing = opacity < 1f;
+        }
         if (keyboard == null) return;
         label.SetLiteralText(keyboard.text);
         if (keyboard.status == TouchScreenKeyboard.Status.Visible) return;

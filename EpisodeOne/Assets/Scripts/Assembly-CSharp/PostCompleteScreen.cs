@@ -69,6 +69,20 @@ public class PostCompleteScreen : MonoBehaviour
 		_menuHeader.BackButton.gameObject.SetActive(false);
 		_menuHeader.SetTitleID("Level complete".Localize().ToUpper(), true);
 		_menuHeader.SetLevel(Result.LevelNum);
+		SetupLeaderboardTitle();
+	}
+
+	private void SetupLeaderboardTitle()
+	{
+		// The old selector is disabled and sits behind the backdrop in this
+		// scene. Reuse its label in the open slot above the embedded table.
+		Flipper.SetActive(true);
+		Flipper.transform.localPosition = new Vector3(0f, 150f, 0f);
+		FlipperButton heading = Flipper.GetComponent<FlipperButton>();
+		heading.Init(true, "LOCAL", "GLOBAL", "LEADERBOARD");
+		heading.UseTitleOnly();
+		heading.Title.SetOriginalPos(Vector3.zero);
+		heading.Title.Refresh();
 	}
 
 	private void ConfirmMainMenu()
@@ -98,6 +112,7 @@ public class PostCompleteScreen : MonoBehaviour
 	private void SetEnabled(bool on)
 	{
 		_leaderboardController.ShowLeaderboard(on);
+		Flipper.SetActive(on);
 		if (on)
 		{
 			_leaderboardController.SetLevel(Result.LevelNum);

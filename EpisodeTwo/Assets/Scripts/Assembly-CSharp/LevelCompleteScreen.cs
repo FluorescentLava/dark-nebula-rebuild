@@ -73,6 +73,18 @@ public class LevelCompleteScreen : MonoBehaviour
 
 	private Vector3 OriginalPosition;
 
+	private GameObject[] nameElements;
+	private tk2dTextMesh[] nameLabels;
+	private Color[] nameTopColors;
+	private Color[] nameBottomColors;
+	private tk2dBaseSprite nameBackground;
+	private Color nameBackgroundColor;
+	private Collider nameHitArea;
+	private SimpleButton nameButton;
+	private Vector3 nameTextScale;
+	private float nameRevealStarted;
+	private bool revealingName;
+
 	private void Awake()
 	{
 		Time.timeScale = 1f;
@@ -119,6 +131,7 @@ public class LevelCompleteScreen : MonoBehaviour
 		sections[2].EventStartTick += OnStartTick;
 		NameInput.GetComponentInChildren<SimpleText>().SetLiteralText(userName);
 		NameInput.GetComponent<SimpleButton>().ButtonUpEvent += OnChangeName;
+		SetupNameReveal();
 		ContinueButton.GetComponentInChildren<SimpleText>().SetStringID("CONTINUE");
 		ContinueButton.GetComponent<SimpleButton>().ButtonUpEvent += OnContinue;
 		_alertScreen = GetComponentInChildren<Alert>();
@@ -130,6 +143,88 @@ public class LevelCompleteScreen : MonoBehaviour
 		ContinueButton.SetActive(false);
 		_alertScreen.gameObject.SetActive(false);
 		GfxSuperStarScreen.SetActive(false);
+		foreach (GameObject element in nameElements) element.SetActive(false);
+		nameButton.enabled = false;
+		nameHitArea.enabled = false;
+		revealingName = false;
+	}
+
+	private void SetupNameReveal()
+	{
+		LevelCompleteFinalSection finalSection = ResultGroup.GetComponent<LevelCompleteFinalSection>();
+		nameElements = new[] { NameInput, finalSection.Title, finalSection.ClickToChange };
+		nameLabels = new tk2dTextMesh[nameElements.Length];
+		nameTopColors = new Color[nameElements.Length];
+		nameBottomColors = new Color[nameElements.Length];
+		for (int i = 0; i < nameElements.Length; i++)
+		{
+			nameLabels[i] = nameElements[i].GetComponentInChildren<tk2dTextMesh>(true);
+			nameTopColors[i] = nameLabels[i].color;
+			nameBottomColors[i] = nameLabels[i].color2;
+		}
+		nameBackground = NameInput.GetComponent<tk2dBaseSprite>();
+		nameBackgroundColor = nameBackground.color;
+		nameTextScale = nameLabels[0].scale;
+		nameButton = NameInput.GetComponent<SimpleButton>();
+		nameHitArea = NameInput.GetComponent<Collider>();
+		if (nameHitArea == null)
+		{
+			// The field is hidden before SimpleButton.Start. Create its hit area
+			// now so that Start cannot introduce an enabled collider mid-fade.
+			BoxCollider hit = NameInput.AddComponent<BoxCollider>();
+			Bounds bounds = nameBackground.GetBounds();
+			hit.center = bounds.center;
+			hit.size = new Vector3(bounds.size.x, bounds.size.y, .4f);
+			nameHitArea = hit;
+		}
+	}
+
+	private void RevealName(bool immediate = false)
+	{
+		foreach (GameObject element in nameElements) element.SetActive(true);
+		// These renderers may have been hidden by the final section's Start.
+		foreach (tk2dTextMesh label in nameLabels) label.GetComponent<Renderer>().enabled = true;
+		nameBackground.GetComponent<Renderer>().enabled = true;
+		FitNameText();
+		revealingName = !immediate;
+		nameRevealStarted = Time.unscaledTime;
+		SetNameOpacity(immediate ? 1f : 0f);
+	}
+
+	private void SetNameOpacity(float opacity)
+	{
+		Color backgroundColor = nameBackgroundColor;
+		backgroundColor.a *= opacity;
+		nameBackground.color = backgroundColor;
+		for (int i = 0; i < nameLabels.Length; i++)
+		{
+			Color top = nameTopColors[i], bottom = nameBottomColors[i];
+			top.a *= opacity;
+			bottom.a *= opacity;
+			nameLabels[i].color = top;
+			nameLabels[i].color2 = bottom;
+			nameLabels[i].Commit();
+		}
+		nameHitArea.enabled = opacity >= 1f;
+		nameButton.enabled = opacity >= 1f;
+	}
+
+	private void FitNameText()
+	{
+		tk2dTextMesh label = nameLabels[0];
+		// Measure at its authored size, keeping the original left anchor and
+		// inset. Long literal names can use wider glyphs than the bitmap font.
+		label.scale = nameTextScale;
+		label.Commit();
+		Bounds art = nameBackground.GetComponent<Renderer>().bounds;
+		float padding = 9f * Mathf.Abs(NameInput.transform.lossyScale.x);
+		float available = art.max.x - label.transform.position.x - padding;
+		float width = label.GetComponent<Renderer>().bounds.size.x;
+		if (width > available && available > 0f)
+		{
+			label.scale = nameTextScale * (available / width);
+			label.Commit();
+		}
 	}
 
 	private void OnPlayStarSound(bool big)
@@ -190,6 +285,7 @@ public class LevelCompleteScreen : MonoBehaviour
 	{
 		if (!_initialized || _done || _skipping || currentSection + 1 >= sections.Length) return;
 		currentSection++;
+		if (currentSection == sections.Length - 1) RevealName();
 		sections[currentSection].StartAnimation();
 	}
 
@@ -198,6 +294,7 @@ public class LevelCompleteScreen : MonoBehaviour
 		if (!_initialized || _done) return;
 		_done = true;
 		OnStopTick();
+		RevealName(true);
 		if (_gotBetterStarThenLast && UserSettings.I.GetIsAllGold(1, 19, Result.Expert))
 		{
 			Invoke("ShowSuperStar", 1f);
@@ -236,6 +333,7 @@ public class LevelCompleteScreen : MonoBehaviour
 		fade.FadeIn();
 		base.gameObject.SetActive(true);
 		SetEnabled();
+		RevealName(true);
 		ContinueButton.SetActive(true);
 	}
 
@@ -321,6 +419,12 @@ public class LevelCompleteScreen : MonoBehaviour
 
 	private void Update()
 	{
+		if (revealingName)
+		{
+			float opacity = Mathf.Clamp01((Time.unscaledTime - nameRevealStarted) / 0.3f);
+			SetNameOpacity(opacity);
+			revealingName = opacity < 1f;
+		}
 		if (keyboard != null)
 		{
 			userName = keyboard.text;
@@ -331,6 +435,7 @@ public class LevelCompleteScreen : MonoBehaviour
 				keyboard = null;
 			}
 			NameInput.GetComponentInChildren<SimpleText>().SetLiteralText(userName);
+			FitNameText();
 		}
 		if (_initialized && Input.GetMouseButton(0) && !_done)
 		{
@@ -355,7 +460,7 @@ public class LevelCompleteScreen : MonoBehaviour
 
 	private void OnChangeName(SimpleButton button)
 	{
-		if (!TouchScreenKeyboard.isSupported) return;
+		if (!_done || _continuing || revealingName || keyboard != null || !TouchScreenKeyboard.isSupported) return;
 		keyboard = TouchScreenKeyboard.Open(userName, TouchScreenKeyboardType.Default);
 		if (keyboard != null && TouchScreenKeyboard.area.height > 0f)
 		{

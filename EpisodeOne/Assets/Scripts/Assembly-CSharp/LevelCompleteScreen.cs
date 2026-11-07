@@ -134,6 +134,7 @@ public class LevelCompleteScreen : MonoBehaviour
 	private void SetEnabled()
 	{
 		ContinueButton.gameObject.SetActive(false);
+		if (nameInput != null) nameInput.gameObject.SetActive(false);
 	}
 
 	private void OnPlayStarSound(bool big)
@@ -183,6 +184,7 @@ public class LevelCompleteScreen : MonoBehaviour
 		if (!(sections[currentSection] == null))
 		{
 			sections[currentSection].StartAnimation();
+			if (currentSection == sections.Length - 1 && nameInput != null) nameInput.Reveal();
 		}
 	}
 
@@ -191,6 +193,7 @@ public class LevelCompleteScreen : MonoBehaviour
 		if (!_initialized || _done) return;
 		_done = true;
 		DarkNebulaAchievements.Instance.SyncAchievements();
+		if (nameInput != null) nameInput.Reveal(true);
 		ContinueButton.gameObject.SetActive(true);
 	}
 
@@ -219,6 +222,7 @@ public class LevelCompleteScreen : MonoBehaviour
 		fade.FadeIn();
 		base.gameObject.SetActive(true);
 		SetEnabled();
+		if (nameInput != null) nameInput.Reveal(true);
 		ContinueButton.gameObject.SetActive(true);
 	}
 

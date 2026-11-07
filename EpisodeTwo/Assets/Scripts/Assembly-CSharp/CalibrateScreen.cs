@@ -15,8 +15,11 @@ public class CalibrateScreen : MonoBehaviour
 	private float _triggerGoBackAtTime;
     private bool closing;
     private float openedAt;
+    private Renderer backdrop;
+    private Vector3 backdropScale, backdropPosition;
 	private readonly Transform[] _instructionLines = new Transform[8];
 	private readonly Vector3[] _instructionPositions = new Vector3[8];
+    private readonly Vector3[] _instructionScales = new Vector3[8];
     private readonly string[] _instructionIDs = new string[8];
 
 	public event HandlerDelegate EventGoBack;
@@ -31,6 +34,7 @@ public class CalibrateScreen : MonoBehaviour
 				if (simpleText.name != "Text" + i) continue;
 				_instructionLines[i] = simpleText.transform;
 				_instructionPositions[i] = simpleText.transform.localPosition;
+                _instructionScales[i] = simpleText.transform.localScale;
                 _instructionIDs[i] = simpleText.GetComponent<tk2dTextMesh>().text;
 			}
 			simpleText.UseCurrentTextAsStringID();
@@ -88,19 +92,30 @@ public class CalibrateScreen : MonoBehaviour
 	private void RefreshInstructionLayout()
 	{
 		if (_instructionLines[0] == null) return;
+		MenuContentFit layout = GetComponent<MenuContentFit>();
 		for (int i = 0; i < _instructionLines.Length; i++)
 		{
 			if (_instructionLines[i] == null) continue;
 			Vector3 position = _instructionPositions[i];
+            tk2dTextMesh mesh = _instructionLines[i].GetComponent<tk2dTextMesh>();
             bool visible = !GamePreferences.Chinese || i == 0 || i == 4;
             _instructionLines[i].gameObject.SetActive(visible);
+            // Chinese has two complete sentences rather than eight small
+            // English fragments. Give them the large font's native line size.
+            float size = GamePreferences.Chinese ? (float)Title.GetComponent<tk2dTextMesh>().font.lineHeight / mesh.font.lineHeight : 1f;
+            Vector3 scale = _instructionScales[i] * size;
             if (GamePreferences.Chinese && visible)
             {
                 position.y = i == 0 ? 116f : 42f;
                 _instructionLines[i].GetComponent<SimpleText>().SetStringID(i == 0 ? "CALIBRATE.INSTRUCTIONS.POSITION" : "LOADING.HINT.CALIBRATE");
             }
             else if (!GamePreferences.Chinese) _instructionLines[i].GetComponent<SimpleText>().SetStringID(_instructionIDs[i]);
-			_instructionLines[i].localPosition = position;
+			if (layout != null) layout.SetControlLayout(_instructionLines[i], position, scale);
+			else
+			{
+				_instructionLines[i].localPosition = position;
+				_instructionLines[i].localScale = scale;
+			}
 		}
 	}
 
@@ -115,6 +130,23 @@ public class CalibrateScreen : MonoBehaviour
 			EventGoBack();
 		}
 	}
+
+    private void LateUpdate()
+    {
+        MenuContentFit layout = GetComponent<MenuContentFit>();
+        if (layout == null || layout.Camera == null) return;
+        if (backdrop == null)
+        {
+            if (GetComponentInParent<Hud>() == null) return;
+            Transform background = transform.Find("Background");
+            if (background == null) return;
+            backdrop = background.GetComponent<Renderer>();
+            backdropScale = background.localScale;
+            backdropPosition = background.localPosition;
+            background.GetComponent<tk2dSprite>().color = new Color(0f, 0f, 0f, 200f / 255f);
+        }
+        LegacyScreenFit.CoverBackdrop(layout.Camera, backdrop, backdropScale, backdropPosition);
+    }
 
 	public virtual void Update()
 	{

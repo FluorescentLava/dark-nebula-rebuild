@@ -16,12 +16,15 @@ public class CalibrateScreen : MonoBehaviour
 	private float _triggerGoBackAtTime;
     private bool closing;
     private float openedAt;
+    private Renderer backdrop;
+    private Vector3 backdropScale, backdropPosition;
 
 	public event HandlerDelegate EventGoBack;
 
 	private void Start()
 	{
 		base.transform.localPosition = new Vector3(0f, 0f, base.transform.localPosition.z);
+		ConfigureTextSize();
 		Text.Text = "CALIBRATE TEXT".Localize();
 		ButtonCalibrate.Text = "CALIBRATE CONTROLS".Localize();
 		ButtonCalibrate.ButtonUpEvent += delegate
@@ -45,11 +48,21 @@ public class CalibrateScreen : MonoBehaviour
 	{
         closing = false;
         openedAt = Time.realtimeSinceStartup;
+		ConfigureTextSize();
+		Text.Text = "CALIBRATE TEXT".Localize();
 		_triggerGoBackAtTime = 0f;
 		Text.GetComponent<Renderer>().enabled = true;
 		TitleText.Text = "CALIBRATE".Localize();
 		ButtonGoBack.gameObject.SetActive(true);
 		ButtonCalibrate.gameObject.SetActive(true);
+	}
+
+	private void ConfigureTextSize()
+	{
+		// Use the normal heading size, matching the confirmation screens.
+		TitleText.SelectedEntry = 1;
+		Text.SelectedEntry = GamePreferences.Chinese ? 1 : 0;
+		Text.Wrapping = GamePreferences.Chinese ? DynamicFont.WrapType.NONE : DynamicFont.WrapType.WORD;
 	}
 
 	private void OnGoBack()
@@ -63,6 +76,23 @@ public class CalibrateScreen : MonoBehaviour
 			EventGoBack();
 		}
 	}
+
+    private void LateUpdate()
+    {
+        MenuContentFit layout = GetComponent<MenuContentFit>();
+        if (layout == null || layout.Camera == null) return;
+        if (backdrop == null)
+        {
+            if (GetComponentInParent<Hud>() == null) return;
+            Transform background = transform.Find("Background");
+            if (background == null) return;
+            backdrop = background.GetComponent<Renderer>();
+            backdropScale = background.localScale;
+            backdropPosition = background.localPosition;
+            background.GetComponent<tk2dSprite>().color = new Color(0f, 0f, 0f, 200f / 255f);
+        }
+        LegacyScreenFit.CoverBackdrop(layout.Camera, backdrop, backdropScale, backdropPosition);
+    }
 
 	public virtual void Update()
 	{

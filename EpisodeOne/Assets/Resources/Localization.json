@@ -1,6 +1,11 @@
 {
   "entries": [
     {
+      "key": "PURCHASE HEADER",
+      "en": "Unlock upgrade",
+      "zh": "解锁升级"
+    },
+    {
       "key": "HC NEEDED",
       "en": "Not enough shards",
       "zh": "碎片不足"

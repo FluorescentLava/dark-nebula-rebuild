@@ -120,12 +120,14 @@ public class LevelCompleteScreen : MonoBehaviour
 		obj7.Tick = (Action)Delegate.Combine(obj7.Tick, new Action(OnTick));
 		LevelCompleteSection obj8 = sections[1];
 		obj8.Tick = (Action)Delegate.Combine(obj8.Tick, new Action(OnTick));
+		ContinueButton.transform.localPosition += Vector3.down * 12f;
 		ContinueButton.Text = "CONTINUE".Localize();
 		ContinueButton.ButtonUpEvent += OnContinue;
 		foreach (tk2dSprite sprite in GetComponentsInChildren<tk2dSprite>(true))
 		{
 			if (sprite.Collection.GetSpriteIdByName("InputField", -1) < 0) continue;
 			nameInput = PlayerNameInput.Create(transform, ContinueButton, sprite.Collection);
+            nameInput.transform.localPosition += Vector3.up * 8f;
 			break;
 		}
 		SetEnabled();
@@ -139,7 +141,7 @@ public class LevelCompleteScreen : MonoBehaviour
 
 	private void OnPlayStarSound(bool big)
 	{
-        GameHaptics.Play(HapticEvent.Star);
+        GameHaptics.Play(currentSection == sections.Length - 1 ? HapticEvent.FinalStar : HapticEvent.Star);
 		Audio.Play("star" + Random.value, (!big) ? SfxStar : SfxStarBig);
 	}
 
@@ -151,7 +153,7 @@ public class LevelCompleteScreen : MonoBehaviour
 		else GameHaptics.StopScore();
 	}
 
-	private void OnDisable() { GameHaptics.StopScore(); }
+	private void OnDisable() { CancelInvoke("BeginNameStage"); CancelInvoke("ShowContinue"); GameHaptics.StopScore(); }
 
 	private void OnDestroy()
 	{
@@ -193,7 +195,7 @@ public class LevelCompleteScreen : MonoBehaviour
 		if (!(sections[currentSection] == null))
 		{
 			sections[currentSection].StartAnimation();
-			if (currentSection == sections.Length - 1 && nameInput != null) nameInput.Reveal();
+
 		}
 	}
 
@@ -203,9 +205,16 @@ public class LevelCompleteScreen : MonoBehaviour
 		_done = true;
 		GameHaptics.StopScore();
 		DarkNebulaAchievements.Instance.SyncAchievements();
-		if (nameInput != null) nameInput.Reveal(true);
-		ContinueButton.gameObject.SetActive(true);
+		Invoke("BeginNameStage", .35f);
 	}
+
+    private void BeginNameStage()
+    {
+        if (nameInput != null) nameInput.Reveal();
+        Invoke("ShowContinue", .45f);
+    }
+
+    private void ShowContinue() { ContinueButton.gameObject.SetActive(true); }
 
 	private void ShowSuperStar()
 	{

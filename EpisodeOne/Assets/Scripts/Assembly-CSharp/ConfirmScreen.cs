@@ -56,7 +56,7 @@ public class ConfirmScreen : SimpleScreen
 		};
 	}
 
-	public void SetAcknowledgementOnly()
+	public virtual void SetAcknowledgementOnly()
 	{
 		acknowledgementOnly = true;
 		btn0.SetActive(true);

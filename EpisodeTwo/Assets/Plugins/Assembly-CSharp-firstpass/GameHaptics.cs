@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 // Append new events so existing serialized/numeric callers keep their values.
-public enum HapticEvent { Damage, Jump, Pickup, Spawn, Finish, Score, Star, CriticalPickup, Death, Spring }
+public enum HapticEvent { Damage, Jump, Pickup, Spawn, Finish, Score, Star, CriticalPickup, Death, Spring, FinalStar }
 
 public static class GameHaptics
 {
@@ -35,10 +35,14 @@ public static class GameHaptics
     static readonly Pattern finish = new Pattern(70,
         new long[] { 0, 40, 55, 65 }, new int[] { 0, 160, 0, 230 },
         new long[] { 0, 45, 55, 80 });
+    // Adjacent on segments retain one uninterrupted 15 ms pulse. Some OEMs
+    // replace a single short segment with the same medium click at every amplitude.
     static readonly Pattern score = new Pattern(10,
-        new long[] { 0, 25 }, new int[] { 0, 200 }, new long[] { 0, 25 });
+        new long[] { 0, 7, 8 }, new int[] { 0, 200, 200 }, new long[] { 0, 15 });
     static readonly Pattern star = new Pattern(60,
-        new long[] { 0, 25 }, new int[] { 0, 255 }, new long[] { 0, 25 });
+        new long[] { 0, 7, 8 }, new int[] { 0, 230, 230 }, new long[] { 0, 15 });
+    static readonly Pattern finalStar = new Pattern(70,
+        new long[] { 0, 7, 8 }, new int[] { 0, 255, 255 }, new long[] { 0, 15 });
     static readonly Pattern damage = new Pattern(80,
         new long[] { 0, 90 }, new int[] { 0, 230 }, new long[] { 0, 110 });
     static readonly Pattern death = new Pattern(100,
@@ -132,12 +136,12 @@ public static class GameHaptics
         if (kind == HapticEvent.Score)
         {
             DarkNebulaScoreTick();
-            duration = .025f;
+            duration = .015f;
         }
-        else if (kind == HapticEvent.Star)
+        else if (kind == HapticEvent.Star || kind == HapticEvent.FinalStar)
         {
-            DarkNebulaStarAward();
-            duration = .025f;
+            DarkNebulaStarAward(kind == HapticEvent.FinalStar ? 1f : .9f);
+            duration = .015f;
         }
         else
         {
@@ -158,7 +162,7 @@ public static class GameHaptics
     [System.Runtime.InteropServices.DllImport("__Internal")]
     static extern void DarkNebulaScoreTick();
     [System.Runtime.InteropServices.DllImport("__Internal")]
-    static extern void DarkNebulaStarAward();
+    static extern void DarkNebulaStarAward(float intensity);
 #endif
 
     // A score ending must not cancel a star, damage or another stronger event.
@@ -179,6 +183,7 @@ public static class GameHaptics
             case HapticEvent.Finish: return finish;
             case HapticEvent.Score: return score;
             case HapticEvent.Star: return star;
+            case HapticEvent.FinalStar: return finalStar;
             case HapticEvent.Death: return death;
             default: return damage;
         }

@@ -29,7 +29,6 @@ public class LoadLevelScreen : MonoBehaviour
 	public static int LevelToLoad = 9;
 
 	private CameraFade fade;
-	private Coroutine calibration;
 
 	private tk2dSprite[] bars = new tk2dSprite[5];
 
@@ -51,7 +50,7 @@ public class LoadLevelScreen : MonoBehaviour
 
 	private void StartProcedure()
 	{
-        calibration = StartCoroutine(LevelMotionCalibration.Calibrate(q => UserSettings.Instance.centerCalibration = q));
+        LevelMotionCalibration.Begin(q => UserSettings.Instance.centerCalibration = q);
 		bars[0] = bar0.GetComponent<tk2dSprite>();
 		bars[1] = bar1.GetComponent<tk2dSprite>();
 		bars[2] = bar2.GetComponent<tk2dSprite>();
@@ -147,10 +146,8 @@ public class LoadLevelScreen : MonoBehaviour
 	{
 		string level = LevelManager.Current.GetSceneName(LevelToLoad);
 		AsyncOperation loading = SceneManager.LoadSceneAsync(level, LoadSceneMode.Single);
-        loading.allowSceneActivation = false;
-        if (calibration != null) yield return calibration;
-        loading.allowSceneActivation = true;
         yield return loading;
+        LevelMotionCalibration.EndSampling();
         foreach(AudioListener listener in GetComponentsInChildren<AudioListener>())listener.enabled=false;
 		fade.FadeOut();
 		fade.FadeComplete += OnLoadComplete;

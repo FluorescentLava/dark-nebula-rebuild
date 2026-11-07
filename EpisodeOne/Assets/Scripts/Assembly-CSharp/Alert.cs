@@ -13,6 +13,25 @@ public class Alert : ConfirmScreen
 		base.transform.position = new Vector3(0f, 0f, base.transform.position.z);
 	}
 
+    public override void SetAcknowledgementOnly()
+    {
+        base.SetAcknowledgementOnly();
+        DynamicFont title = lblTitle.GetComponentInChildren<DynamicFont>();
+        title.SelectedEntry = 2; // Size11, larger than the body and button.
+        title.Anchor = TextAnchor.MiddleCenter;
+        title.Alignment = TextAlignment.Center;
+        title.SetOriginalPos(new Vector3(0f, 55f, title.transform.localPosition.z));
+        title.Refresh();
+        DynamicFont body = lblBody.GetComponent<DynamicFont>();
+        body.Anchor = TextAnchor.MiddleCenter;
+        body.Alignment = TextAlignment.Center;
+        body.SetOriginalPos(new Vector3(0f, 5f, body.transform.localPosition.z));
+        body.Refresh();
+        Vector3 buttonPosition = btn0.transform.localPosition;
+        buttonPosition.y = -55f;
+        btn0.transform.localPosition = buttonPosition;
+    }
+
 	public void SetBody(string stringID)
 	{
 		lblBody.GetComponent<DynamicFont>().Text = stringID.Localize().ToUpper();

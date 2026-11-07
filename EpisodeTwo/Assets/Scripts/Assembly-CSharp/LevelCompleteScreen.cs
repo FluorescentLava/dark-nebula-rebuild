@@ -153,6 +153,8 @@ public class LevelCompleteScreen : MonoBehaviour
 	{
 		LevelCompleteFinalSection finalSection = ResultGroup.GetComponent<LevelCompleteFinalSection>();
 		nameElements = new[] { NameInput, finalSection.Title, finalSection.ClickToChange };
+        foreach (GameObject element in nameElements) element.transform.localPosition += Vector3.up * 8f;
+        ContinueButton.transform.localPosition += Vector3.down * 12f;
 		nameLabels = new tk2dTextMesh[nameElements.Length];
 		nameTopColors = new Color[nameElements.Length];
 		nameBottomColors = new Color[nameElements.Length];
@@ -229,12 +231,14 @@ public class LevelCompleteScreen : MonoBehaviour
 
 	private void OnPlayStarSound(bool big)
 	{
-        GameHaptics.Play(HapticEvent.Star);
+        GameHaptics.Play(currentSection == sections.Length - 1 ? HapticEvent.FinalStar : HapticEvent.Star);
 		Audio.Play("star" + UnityEngine.Random.value, (!big) ? SfxStar : SfxStarBig);
 	}
 
 	private void OnDisable()
 	{
+		CancelInvoke("BeginNameStage");
+		CancelInvoke("ShowContinue");
 		CancelInvoke("OnStopTick");
 		OnStopTick();
 	}
@@ -293,7 +297,7 @@ public class LevelCompleteScreen : MonoBehaviour
 	{
 		if (!_initialized || _done || _skipping || currentSection + 1 >= sections.Length) return;
 		currentSection++;
-		if (currentSection == sections.Length - 1) RevealName();
+
 		sections[currentSection].StartAnimation();
 	}
 
@@ -303,7 +307,17 @@ public class LevelCompleteScreen : MonoBehaviour
 		_done = true;
 		GameHaptics.StopScore();
 		OnStopTick();
-		RevealName(true);
+		Invoke("BeginNameStage", .35f);
+	}
+
+    private void BeginNameStage()
+    {
+        RevealName();
+        Invoke("ShowContinue", .45f);
+    }
+
+    private void ShowContinue()
+    {
 		if (_gotBetterStarThenLast && UserSettings.I.GetIsAllGold(1, 19, Result.Expert))
 		{
 			Invoke("ShowSuperStar", 1f);

@@ -2,7 +2,7 @@
 #import <CoreHaptics/CoreHaptics.h>
 #import <dispatch/dispatch.h>
 
-// Reuse the engine, but give each numeric tick/award its own finite 25 ms
+// Reuse the engine, but give each numeric tick/award its own finite 15 ms
 // event. This continues for any counting duration without a repeating player.
 static bool DarkNebulaTimedImpact(float intensity, float sharpness)
 {
@@ -27,7 +27,7 @@ static bool DarkNebulaTimedImpact(float intensity, float sharpness)
         initWithParameterID:CHHapticEventParameterIDHapticSharpness value:sharpness];
     CHHapticEvent *event = [[CHHapticEvent alloc]
         initWithEventType:CHHapticEventTypeHapticContinuous
-        parameters:@[strength, texture] relativeTime:0 duration:0.025];
+        parameters:@[strength, texture] relativeTime:0 duration:0.015];
     CHHapticPattern *pattern = [[CHHapticPattern alloc]
         initWithEvents:@[event] parameters:@[] error:&error];
     if (pattern == nil) return false;
@@ -45,13 +45,13 @@ extern "C" void DarkNebulaScoreTick()
     [feedback prepare];
 }
 
-extern "C" void DarkNebulaStarAward()
+extern "C" void DarkNebulaStarAward(float intensity)
 {
-    if (DarkNebulaTimedImpact(1.0f, 1.0f)) return;
+    if (DarkNebulaTimedImpact(intensity, 1.0f)) return;
     static UIImpactFeedbackGenerator *feedback;
     if (feedback == nil)
         feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
-    [feedback impactOccurredWithIntensity:1.0];
+    [feedback impactOccurredWithIntensity:intensity];
     [feedback prepare];
 }
 

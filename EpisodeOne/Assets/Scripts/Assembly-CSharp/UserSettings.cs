@@ -66,6 +66,7 @@ public class UserSettings
 
 	public void Calibrate()
 	{
+        LevelMotionCalibration.Cancel();
 		Vector3 forward = LevelMotionCalibration.Gravity;
 		forward.Normalize();
 		if (forward.sqrMagnitude == 0f)

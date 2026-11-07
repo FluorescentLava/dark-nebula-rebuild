@@ -10,6 +10,15 @@ extern "C" void DarkNebulaScoreTick()
     [feedback prepare];
 }
 
+extern "C" void DarkNebulaStarAward()
+{
+    static UIImpactFeedbackGenerator *feedback;
+    if (feedback == nil)
+        feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
+    [feedback impactOccurredWithIntensity:1.0];
+    [feedback prepare];
+}
+
 extern "C" void DarkNebulaOpenEpisodeTwo()
 {
     UIApplication *application = [UIApplication sharedApplication];

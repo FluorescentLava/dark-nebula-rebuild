@@ -38,8 +38,8 @@ public static class GameHaptics
     static readonly Pattern score = new Pattern(10,
         new long[] { 0, 45 }, new int[] { 0, 200 }, new long[] { 0, 55 });
     static readonly Pattern star = new Pattern(60,
-        new long[] { 0, 28, 35, 45 }, new int[] { 0, 140, 0, 220 },
-        new long[] { 0, 35, 40, 55 });
+        new long[] { 0, 50, 45, 80 }, new int[] { 0, 255, 0, 255 },
+        new long[] { 0, 65, 45, 95 });
     static readonly Pattern damage = new Pattern(80,
         new long[] { 0, 90 }, new int[] { 0, 230 }, new long[] { 0, 110 });
     static readonly Pattern death = new Pattern(100,
@@ -135,6 +135,11 @@ public static class GameHaptics
             DarkNebulaScoreTick();
             duration = .045f;
         }
+        else if (kind == HapticEvent.Star)
+        {
+            DarkNebulaStarAward();
+            duration = .1f;
+        }
         else
         {
             Handheld.Vibrate();
@@ -153,6 +158,8 @@ public static class GameHaptics
 #if UNITY_IOS && !UNITY_EDITOR
     [System.Runtime.InteropServices.DllImport("__Internal")]
     static extern void DarkNebulaScoreTick();
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    static extern void DarkNebulaStarAward();
 #endif
 
     // A score ending must not cancel a star, damage or another stronger event.

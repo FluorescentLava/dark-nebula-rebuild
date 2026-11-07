@@ -791,6 +791,11 @@
       "zh": "获得碎片"
     },
     {
+      "key": "SHARD COLLECTED",
+      "en": "Shards collected: {0}",
+      "zh": "获得 {0} 个碎片"
+    },
+    {
       "key": "PENALTY TEXT",
       "en": "+{0} sec time penalty",
       "zh": "时间惩罚 +{0} 秒"

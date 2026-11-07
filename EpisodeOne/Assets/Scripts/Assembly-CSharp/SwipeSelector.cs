@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class SwipeSelector : MonoBehaviour
 {
+	public Camera ViewCamera;
+	private Camera InputCamera { get { return ViewCamera != null ? ViewCamera : Camera.main; } }
 	private const float SwipeThresholdTime = 0.2f;
 
 	private const float SwipeThresholdDistance = 0.1f;
@@ -69,6 +71,8 @@ public class SwipeSelector : MonoBehaviour
 
     public void Reorder(Transform[] objects, float spacing, int selected)
     {
+        Go.killAllTweensWithTarget(_movingObject);
+        _isTouching=false;
         _selectableObjects=objects;
         for(int i=0;i<objects.Length;i++) objects[i].localPosition=new Vector3(i*spacing,0,0);
         _selectedIndex=selected;
@@ -77,16 +81,17 @@ public class SwipeSelector : MonoBehaviour
 
 	private void Start()
 	{
-		MoveTo(0);
+		MoveTo(_selectedIndex);
 	}
 
 	private void Update()
 	{
 		if (Input.GetMouseButton(0))
 		{
-			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			if (InputCamera == null || _selectableObjects.Length == 0) return;
+			Ray ray = InputCamera.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hitInfo;
-			if (Physics.Raycast(ray, out hitInfo, float.MaxValue) && hitInfo.collider == _touchCollider)
+			if (Physics.Raycast(ray, out hitInfo, float.MaxValue, InputCamera.cullingMask) && hitInfo.collider == _touchCollider)
 			{
 				if (!_isTouching)
 				{
@@ -107,12 +112,12 @@ public class SwipeSelector : MonoBehaviour
 	{
 		_touchStartPos = pPos;
 		_moverStartPos = _movingObject.localPosition;
-		_touchStartTime = Time.time;
+		_touchStartTime = Time.unscaledTime;
 	}
 
 	private void ContinueTouchAt(Vector2 pPos)
 	{
-		float num = 2f * Camera.main.orthographicSize * (float)Screen.width / (float)Screen.height;
+		float num = 2f * InputCamera.orthographicSize * InputCamera.aspect;
 		Vector3 localPosition = _moverStartPos + new Vector3((pPos.x - _touchStartPos.x) / (float)Screen.width * num, 0f, 0f);
 		float num2 = 0f;
 		float num3 = 0f - _selectableObjects[_selectableObjects.Length - 1].localPosition.x;
@@ -129,7 +134,7 @@ public class SwipeSelector : MonoBehaviour
 
 	private void EndTouchAt(Vector2 pPos)
 	{
-		float num = Time.time - _touchStartTime;
+		float num = Time.unscaledTime - _touchStartTime;
 		float num2 = (pPos.x - _touchStartPos.x) / (float)Screen.width;
 		if (num < 0.2f && Mathf.Abs(num2) >= 0.1f)
 		{
@@ -168,7 +173,7 @@ public class SwipeSelector : MonoBehaviour
 	public void MoveTo(int pIndex)
 	{
 		Go.killAllTweensWithTarget(_movingObject);
-		Go.to(_movingObject, _slideTime, new GoTweenConfig().localPosition(GetOffsetFor(pIndex)).setEaseType(GoEaseType.QuadOut));
+		Go.to(_movingObject, _slideTime, new GoTweenConfig().localPosition(GetOffsetFor(pIndex)).setEaseType(GoEaseType.QuadOut).setUpdateType(GoUpdateType.TimeScaleIndependentUpdate));
 	}
 
 	public void SnapTo(int pIndex)

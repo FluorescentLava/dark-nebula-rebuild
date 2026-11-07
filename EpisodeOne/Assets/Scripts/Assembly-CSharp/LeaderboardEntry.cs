@@ -106,8 +106,6 @@ public class LeaderboardEntry : MonoBehaviour
 			Vector3 portraitPosition = _profileImage.localPosition;
 			portraitPosition.x = -130f;
 			_profileImage.localPosition = portraitPosition;
-			_localNameText.FontRefreshed += AlignLocalRow;
-			_dateText.FontRefreshed += AlignLocalRow;
 		}
 		Entry = pEntry;
 		base.transform.localPosition = new Vector3(0f, -18f + (float)pListposition * -36f, 0f);
@@ -178,21 +176,9 @@ public class LeaderboardEntry : MonoBehaviour
 			{
 				_haveProfileImage = false;
 			}
-			AlignLocalRow();
 		}
 	}
 
-	private void AlignLocalRow()
-	{
-		if (_dateText == null) return;
-		foreach (DynamicFont label in new[] { _localNameText, _dateText })
-		{
-			Vector3 position = label.transform.position;
-			float y = label == _dateText ? -8.538132f : 5.3812775f;
-			position.y += transform.TransformPoint(new Vector3(0f, y, 0f)).y - label.InkCenterWorldY;
-			label.transform.position = position;
-		}
-	}
 
 	public void SetCurrentUserIndicator()
 	{

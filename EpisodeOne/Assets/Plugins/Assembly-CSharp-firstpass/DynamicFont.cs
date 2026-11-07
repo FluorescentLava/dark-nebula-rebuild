@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using FLD;
 using UnityEngine;
+using UnityEngine.TextCore.LowLevel;
 
 public class DynamicFont : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class DynamicFont : MonoBehaviour
 
     private static Font leaderboardChineseFont;
     private static Font leaderboardBoldFont;
+    private static readonly Dictionary<Font, float> ascentFractions = new Dictionary<Font, float>();
 
     private static Font ChineseFontFor(DynamicFontSettings.Entry entry)
     {
@@ -193,7 +195,7 @@ public class DynamicFont : MonoBehaviour
 			}
 		}
 		RefreshTextMesh(GetTextMesh(), Settings.Entries[SelectedEntry], _scale);
-        AlignChineseText(GetTextMesh(), Settings.Entries[SelectedEntry], _scale);
+        AlignGlyphAnchor(GetTextMesh());
 		if (FontRefreshed != null)
 		{
 			FontRefreshed();
@@ -320,10 +322,20 @@ public class DynamicFont : MonoBehaviour
         string plain = Regex.Replace(text.text, "<.*?>", string.Empty).Replace("\r", "");
         string[] lines = plain.Split('\n');
         Font font = text.font;
-        float ascentFraction = font.lineHeight > 0 ? (float)font.ascent / font.lineHeight : .8f;
-        // Fractions come from the bundled fonts' hhea ascender/descender metrics.
-        if (font.name == "darknebula") ascentFraction = 1966f / (1966f + 492f);
-        else if (font == GameLocalization.ChineseFont) ascentFraction = 880f / (880f + 120f);
+        float ascentFraction;
+        if (!ascentFractions.TryGetValue(font, out ascentFraction))
+        {
+            ascentFraction = font.lineHeight > 0 ? (float)font.ascent / font.lineHeight : .8f;
+            // Font.ascent/lineHeight are rounded at the import size. Use the
+            // face's precise metrics at the actual raster size instead.
+            if (FontEngine.LoadFontFace(font, 64) == FontEngineError.Success)
+            {
+                var face = FontEngine.GetFaceInfo();
+                float height = face.ascentLine - face.descentLine;
+                if (height > 0) ascentFraction = face.ascentLine / height;
+            }
+            ascentFractions[font] = ascentFraction;
+        }
         float cell = bounds.size.y / Mathf.Max(1f, 1f + (lines.Length - 1) * text.lineSpacing);
         float baseline = bounds.max.y - cell * ascentFraction;
         float pixel = text.characterSize * .1f;
@@ -340,31 +352,15 @@ public class DynamicFont : MonoBehaviour
         if (float.IsInfinity(low)) { low = bounds.min.y; high = bounds.max.y; }
     }
 
-    private static void AlignChineseText(TextMesh text, DynamicFontSettings.Entry entry, float scale)
+    private static void AlignGlyphAnchor(TextMesh text)
     {
-        if (entry.CapitalHeight > 0f) return;
-        if (!Application.isPlaying || text.font != ChineseFontFor(entry) || string.IsNullOrEmpty(text.text)) return;
-        Renderer renderer = text.GetComponent<Renderer>();
-        float chineseLow, chineseHigh;
-        LocalInkY(text, out chineseLow, out chineseHigh);
-        Font referenceFont = entry.Font;
-        int referenceSize = entry.Size;
-        var fontOverride = entry.GetOverride(LocalizationManager.Instance.PrimaryLanguageId);
-        if (fontOverride != null) { referenceFont = fontOverride.Font; referenceSize = fontOverride.Size; }
-        if (referenceFont == null || referenceFont == text.font) return;
-        Font currentFont = text.font;
-        string currentText = text.text;
-        int currentSize = text.fontSize;
-        Material currentMaterial = renderer.sharedMaterial;
-        float unit = Mathf.Round(100f / (Screen.height / 2f) * 1000f) / 1000f;
-        text.font = referenceFont; text.fontSize = Mathf.RoundToInt(referenceSize * scale / unit); text.text = "H";
-        float referenceLow, referenceHigh;
-        LocalInkY(text, out referenceLow, out referenceHigh);
-        text.font = currentFont; text.fontSize = currentSize; text.text = currentText;
-        renderer.sharedMaterial = currentMaterial;
+        if (!Application.isPlaying || string.IsNullOrEmpty(text.text)) return;
+        float low, high;
+        LocalInkY(text, out low, out high);
         int vertical = (int)text.anchor / 3;
-        float delta = vertical == 0 ? referenceHigh - chineseHigh
-            : vertical == 2 ? referenceLow - chineseLow : (referenceLow + referenceHigh - chineseLow - chineseHigh) * .5f;
+        // TextMesh anchors its typographic line box, whose padding varies with
+        // the font. All UI labels anchor their visible glyphs in the same way.
+        float delta = vertical == 0 ? -high : vertical == 2 ? -low : -(low + high) * .5f;
         text.transform.localPosition += text.transform.localRotation * (Vector3.up * delta * text.transform.localScale.y);
     }
 

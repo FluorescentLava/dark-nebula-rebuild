@@ -500,6 +500,7 @@ public class Vessel : Entity
 	{
         GameHaptics.Play(HapticEvent.CriticalPickup);
 		HardCurrencyManager.Instance.Earn(CustomBuildVariables<CustomBuildVars>.Instance.InGameHCValue);
+		if (World.hud != null) World.hud.ShowMessage(GameLocalization.Format("SHARD COLLECTED", CustomBuildVariables<CustomBuildVars>.Instance.InGameHCValue));
 		Audio.Play("extralife", SfxExtraLife, _transform);
 	}
 

@@ -19,18 +19,16 @@ public class TextMessage : Entity
 	private Vector3 _originalCharScale;
 
 	private bool _inited;
-
-	private void Start()
-	{
-		_originalCharScale = _textMesh.transform.localScale;
-	}
+	private bool _initialized;
 
 	private void Init()
 	{
-		if (!_inited)
+		if (!_initialized)
 		{
-			_inited = true;
+			_initialized = true;
+			_originalCharScale = _textMesh.transform.localScale;
 		}
+		_inited = true;
 	}
 
 	public void SetMessage(string message, bool red = false)
@@ -38,14 +36,16 @@ public class TextMessage : Entity
 		Init();
 		animationTimer = 0f;
 		base.transform.localPosition = new Vector3(0f, (float)Constants.VirtualScreenHeight * 0.25f, 0f);
-		_textMesh.Text = message;
 		_textMesh.transform.localScale = _originalCharScale;
+		_textMesh.Text = message;
 		if (red)
 		{
 			GfxFlare.Play("TextFlareRed");
 			GfxGlow.Play("TextGlowRed");
 		}
 	}
+
+	public void StopMessage() { _inited = false; }
 
 	private void Update()
 	{
@@ -67,7 +67,9 @@ public class TextMessage : Entity
 			{
 				animationTimer = 0f;
 				_inited = false;
-				ObjectPool.instance.PoolObject(this);
+				Hud owner = GetComponentInParent<Hud>();
+				if (owner != null) owner.FinishMessage(this);
+				else ObjectPool.instance.PoolObject(this);
 			}
 		}
 	}

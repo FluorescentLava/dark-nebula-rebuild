@@ -387,9 +387,16 @@ public class Hud : MonoBehaviour
 	{
 		if (!(_message == null))
 		{
-			ObjectPool.instance.PoolObject(_message);
+			TextMessage message = _message;
 			_message = null;
+			message.StopMessage();
+			ObjectPool.instance.PoolObject(message);
 		}
+	}
+
+	public void FinishMessage(TextMessage message)
+	{
+		if (_message == message) destroyMessage();
 	}
 
 	private void destroyShieldMessage()

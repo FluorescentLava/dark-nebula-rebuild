@@ -124,7 +124,7 @@ public class IngameOptionScreen : MonoBehaviour
     }
     public void CloseOptions() { if(EventGoBack!=null)EventGoBack(); }
     public void OpenCalibration() { if(EventLaunchCalibrateControls!=null)EventLaunchCalibrateControls(); }
-    public void OpenVessels() { OriginalVesselScreen.Open(this); }
+    public void OpenVessels() { VesselSelectionScreen.Open(this); }
     public virtual void Update()
     {
         if(_isEnabled && Time.frameCount>inputEnabledFrame && (Input.GetKeyUp(KeyCode.Menu)||Input.GetKeyUp(KeyCode.Escape)))CloseOptions();

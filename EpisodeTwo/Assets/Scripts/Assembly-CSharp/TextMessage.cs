@@ -19,6 +19,7 @@ public class TextMessage : Entity
 	private Vector3 _originalCharScale;
 
 	private bool _inited;
+	private bool _playing;
 
 	private void Init()
 	{
@@ -36,6 +37,7 @@ public class TextMessage : Entity
 	public void SetMessage(string message, bool red = false)
 	{
 		Init();
+		_playing = true;
 		animationTimer = 0f;
 		base.transform.localPosition = new Vector3(0f, 120f, 0f);
 		_textMesh.text = message;
@@ -49,9 +51,11 @@ public class TextMessage : Entity
 		}
 	}
 
+	public void StopMessage() { _playing = false; }
+
 	private void Update()
 	{
-		if (_inited)
+		if (_playing)
 		{
 			animationTimer += Time.deltaTime;
 			float num = animationTimer / 1f;
@@ -71,7 +75,10 @@ public class TextMessage : Entity
 			if (animationTimer > 3f)
 			{
 				animationTimer = 0f;
-				ObjectPool.instance.PoolObject(this);
+				_playing = false;
+				Hud owner = GetComponentInParent<Hud>();
+				if (owner != null) owner.FinishMessage(this);
+				else ObjectPool.instance.PoolObject(this);
 			}
 		}
 	}

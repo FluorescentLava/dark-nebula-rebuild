@@ -17,7 +17,7 @@ public class AvatarSimpleButton : SimpleButton
 
 	public override void OnButtonUp()
 	{
-		AvatarShopScreen.PreviousScene = Application.loadedLevelName;
+		VesselSelectionScene.PreviousScene = Application.loadedLevelName;
 		StartCoroutine(LoadAvatarShop());
 		base.OnButtonUp();
 	}

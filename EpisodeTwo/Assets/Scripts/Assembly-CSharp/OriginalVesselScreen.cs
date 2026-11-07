@@ -55,7 +55,10 @@ public sealed class OriginalVesselScreen : MonoBehaviour
         back=Copy(source.BtnGoBack,"Back",-215).GetComponent<SimpleButton>();
         action.ButtonUpEvent+=PurchaseOrEquip;
         back.ButtonUpEvent+=Return;
-        balance=CreateShardDisplay("Shard balance",new Vector3(0,235,0),true);
+        balance=CreateShardDisplay("Shard balance",new Vector3(-150,235,0),true);
+        var anchor=balance.transform.parent.gameObject.AddComponent<ShardBalanceAnchor>();
+        anchor.ViewCamera=back.viewCamera!=null?back.viewCamera:Camera.main;
+        anchor.Icon=balance.transform.parent.Find("Shard icon").GetComponent<Renderer>();
         details=CreateShardDisplay("Shard price",new Vector3(0,-85,0),false);
         priceDisplay=details.transform.parent.gameObject;
         var art=new GameObject("Vessel preview");art.layer=source.gameObject.layer;
@@ -74,20 +77,13 @@ public sealed class OriginalVesselScreen : MonoBehaviour
         var root=new GameObject(name);root.layer=gameObject.layer;
         root.transform.SetParent(transform,false);root.transform.localPosition=position;
         var collection=Resources.Load<GameObject>("VesselLockArt/VesselLockCollection").GetComponent<tk2dSpriteCollectionData>();
-        if(background)
-        {
-            var plate=new GameObject("Counter background");plate.layer=gameObject.layer;
-            plate.transform.SetParent(root.transform,false);plate.transform.localPosition=new Vector3(0,0,1);
-            var art=tk2dSprite.AddComponent(plate,collection,collection.GetSpriteIdByName("CurrencyCounterBackground"));
-            art.scale=new Vector3(.5f,.5f,1);
-        }
         var icon=new GameObject("Shard icon");icon.layer=gameObject.layer;
-        icon.transform.SetParent(root.transform,false);icon.transform.localPosition=new Vector3(background?-95:-40,0,0);
+        icon.transform.SetParent(root.transform,false);icon.transform.localPosition=new Vector3(background?0:-40,0,0);
         var shard=tk2dSprite.AddComponent(icon,collection,collection.GetSpriteIdByName("HardCurrencyIcon"));
         shard.scale=new Vector3(.5f,.5f,1);
         var label=Instantiate(selector.Value,root.transform).GetComponent<SimpleText>();
-        label.name="Amount";label.transform.localPosition=new Vector3(background?10:15,0,-1);
-        var mesh=label.GetComponent<tk2dTextMesh>();mesh.anchor=TextAnchor.MiddleCenter;
+        label.name="Amount";label.transform.localPosition=new Vector3(background?28:15,0,-1);
+        var mesh=label.GetComponent<tk2dTextMesh>();mesh.anchor=background?TextAnchor.MiddleLeft:TextAnchor.MiddleCenter;
         mesh.color=new Color(0,1,0,1);
         return label;
     }

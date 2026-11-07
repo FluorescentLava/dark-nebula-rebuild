@@ -40,6 +40,6 @@ public static class ShardWallet
         if(chance-1>10) PlayerPrefs.SetInt(ChanceKey,chance-1);
         Earn(1);
         GameHaptics.Play(HapticEvent.CriticalPickup);
-        if(World.hud!=null) World.hud.ShowMessage(GameLocalization.Text("HC PICKUP LARGE"));
+        if(World.hud!=null) World.hud.ShowMessage(GameLocalization.Format("SHARD COLLECTED",1));
     }
 }

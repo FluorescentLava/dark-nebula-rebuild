@@ -34,9 +34,9 @@ public class AvatarButton : MonoBehaviour
 
 	public void Bounce()
 	{
-		Go.to(_avatarIcon.transform, 0.02f, new GoTweenConfig().scale(_defaultScale + Vector3.one).onComplete(delegate
+		Go.to(_avatarIcon.transform, 0.02f, new GoTweenConfig().scale(_defaultScale + Vector3.one).setUpdateType(GoUpdateType.TimeScaleIndependentUpdate).onComplete(delegate
 		{
-			Go.to(_avatarIcon.transform, 0.3f, new GoTweenConfig().scale(_defaultScale).setEaseType(GoEaseType.BounceOut));
+			Go.to(_avatarIcon.transform, 0.3f, new GoTweenConfig().scale(_defaultScale).setEaseType(GoEaseType.BounceOut).setUpdateType(GoUpdateType.TimeScaleIndependentUpdate));
 		}));
 	}
 

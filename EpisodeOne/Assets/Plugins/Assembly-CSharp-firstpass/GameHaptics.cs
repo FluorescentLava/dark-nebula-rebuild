@@ -203,7 +203,7 @@ public static class GameHaptics
     }
 
 #if UNITY_ANDROID && !UNITY_EDITOR
-    static AndroidJavaObject vibrator;
+    static AndroidJavaObject vibrator, gameAttributes;
     static int sdk, warned;
     static bool initialized, hasVibrator, amplitudeControl, legacyOnly, nativeMayBeRunning;
 
@@ -243,6 +243,16 @@ public static class GameHaptics
                     amplitudeControl = false;
                 }
             }
+            if (hasVibrator && sdk >= 21)
+            {
+                // Without an explicit usage Android can classify a short pickup
+                // as TOUCH and drop it when keyboard/touch feedback is disabled.
+                // Gameplay effects belong to GAME (mapped to vibration MEDIA).
+                using (var attributes = new AndroidJavaClass("android.media.AudioAttributes"))
+                using (var builder = new AndroidJavaObject("android.media.AudioAttributes$Builder"))
+                using (var configured = builder.Call<AndroidJavaObject>("setUsage", attributes.GetStatic<int>("USAGE_GAME")))
+                    gameAttributes = configured.Call<AndroidJavaObject>("build");
+            }
             // A failed acquisition remains retryable on the next event.
             initialized = true;
             return hasVibrator;
@@ -271,7 +281,7 @@ public static class GameHaptics
                 using (var effect = amplitudeControl
                     ? effectClass.CallStatic<AndroidJavaObject>("createWaveform", timing, pattern.Strength, -1)
                     : effectClass.CallStatic<AndroidJavaObject>("createWaveform", timing, -1))
-                    vibrator.Call("vibrate", effect);
+                    vibrator.Call("vibrate", effect, gameAttributes);
                 nativeMayBeRunning = false;
                 return Duration(timing);
             }
@@ -284,7 +294,10 @@ public static class GameHaptics
         try
         {
             // Never pass low-amplitude timings to the legacy full-power motor.
-            vibrator.Call("vibrate", pattern.FallbackTiming, -1);
+            if (gameAttributes != null)
+                vibrator.Call("vibrate", pattern.FallbackTiming, -1, gameAttributes);
+            else
+                vibrator.Call("vibrate", pattern.FallbackTiming, -1);
             nativeMayBeRunning = false;
             return Duration(pattern.FallbackTiming);
         }
@@ -309,7 +322,9 @@ public static class GameHaptics
     static void ReleaseAndroid()
     {
         if (vibrator != null) vibrator.Dispose();
+        if (gameAttributes != null) gameAttributes.Dispose();
         vibrator = null;
+        gameAttributes = null;
         initialized = hasVibrator = amplitudeControl = legacyOnly = false;
     }
 

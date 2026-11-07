@@ -97,13 +97,11 @@ public class CalibrateScreen : MonoBehaviour
 		{
 			if (_instructionLines[i] == null) continue;
 			Vector3 position = _instructionPositions[i];
-            tk2dTextMesh mesh = _instructionLines[i].GetComponent<tk2dTextMesh>();
             bool visible = !GamePreferences.Chinese || i == 0 || i == 4;
             _instructionLines[i].gameObject.SetActive(visible);
-            // Chinese has two complete sentences rather than eight small
-            // English fragments. Give them the large font's native line size.
-            float size = GamePreferences.Chinese ? (float)Title.GetComponent<tk2dTextMesh>().font.lineHeight / mesh.font.lineHeight : 1f;
-            Vector3 scale = _instructionScales[i] * size;
+            // Keep the normal body size while combining the English fragments
+            // into complete Chinese sentences. Only the heading uses large type.
+            Vector3 scale = _instructionScales[i];
             if (GamePreferences.Chinese && visible)
             {
                 position.y = i == 0 ? 116f : 42f;

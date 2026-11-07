@@ -61,7 +61,7 @@ public class CalibrateScreen : MonoBehaviour
 	{
 		// Use the normal heading size, matching the confirmation screens.
 		TitleText.SelectedEntry = 1;
-		Text.SelectedEntry = GamePreferences.Chinese ? 1 : 0;
+		Text.SelectedEntry = 0;
 		Text.Wrapping = GamePreferences.Chinese ? DynamicFont.WrapType.NONE : DynamicFont.WrapType.WORD;
 	}
 

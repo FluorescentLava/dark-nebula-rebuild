@@ -1548,7 +1548,7 @@ MeshRenderer:
   m_LightmapIndex: 255
   m_LightmapTilingOffset: {x: 1, y: 1, z: 0, w: 0}
   m_Materials:
-  - {fileID: 2100000, guid: 3ab5c80c66a476f41909614b32e9e58c, type: 2}
+  - {fileID: 2100000, guid: 70e0d207d13479043be749511b7c09b3, type: 2}
   m_SubsetIndices:
   m_StaticBatchRoot: {fileID: 0}
   m_UseLightProbes: 0
@@ -2764,7 +2764,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b7d1d0d4b80acf5556786e3e931515d, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  _font: {fileID: 11409266, guid: 4b587fc3efee287469f57f0aed2fb9e3, type: 2}
+  _font: {fileID: 11409266, guid: 3dbf1e61d1b97414a8f2bb929c61a6e7, type: 2}
   _text: TITLE
   _color: {r: 1, g: 1, b: 1, a: 1}
   _color2: {r: 1, g: 1, b: 1, a: 1}

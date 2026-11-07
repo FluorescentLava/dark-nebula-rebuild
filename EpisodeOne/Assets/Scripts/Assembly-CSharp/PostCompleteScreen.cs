@@ -79,6 +79,7 @@ public class PostCompleteScreen : MonoBehaviour
 		Flipper.SetActive(true);
 		Flipper.transform.localPosition = new Vector3(0f, 150f, 0f);
 		FlipperButton heading = Flipper.GetComponent<FlipperButton>();
+		heading.Title.SelectedEntry = 1;
 		heading.Init(true, "LOCAL", "GLOBAL", "LEADERBOARD");
 		heading.UseTitleOnly();
 		heading.Title.SetOriginalPos(Vector3.zero);

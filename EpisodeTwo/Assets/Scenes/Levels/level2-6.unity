@@ -6992,7 +6992,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   collection: {fileID: 11409266, guid: 08fae7ec97bb304488eb25385e82270c, type: 2}
-  _color: {r: 0, g: 0, b: 0, a: 1}
+  _color: {r: 0, g: 0, b: 0, a: 0.78431374}
   _scale: {x: 35, y: 45, z: 1}
   _spriteId: 7
   pixelPerfect: 0
@@ -8795,7 +8795,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   collection: {fileID: 11409266, guid: 08fae7ec97bb304488eb25385e82270c, type: 2}
-  _color: {r: 0, g: 0, b: 0, a: 1}
+  _color: {r: 0, g: 0, b: 0, a: 0.78431374}
   _scale: {x: 35, y: 45, z: 1}
   _spriteId: 7
   pixelPerfect: 0

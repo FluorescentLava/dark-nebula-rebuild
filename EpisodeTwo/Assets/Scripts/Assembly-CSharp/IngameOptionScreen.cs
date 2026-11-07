@@ -17,7 +17,7 @@ public class IngameOptionScreen : MonoBehaviour
     bool _isEnabled=true;
     int inputEnabledFrame=-1;
     bool initialized;
-    protected bool IsInitialized { get { return initialized; } }
+    public bool IsInitialized { get { return initialized; } }
     public bool IsInMainMenu { get { return this is OptionScreen; } }
     public event HandlerDelegate EventGoBack;
     public event HandlerDelegate EventLaunchCalibrateControls;

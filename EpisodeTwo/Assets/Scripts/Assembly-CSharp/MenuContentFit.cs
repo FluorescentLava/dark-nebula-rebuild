@@ -42,6 +42,9 @@ public class MenuContentFit : MonoBehaviour
     void LateUpdate()
     {
         if(Camera==null)return;
+        var settings=GetComponent<IngameOptionScreen>();
+        // Activation can reach LateUpdate before the settings controller starts.
+        if(settings!=null && !settings.IsInitialized)return;
         Rect safe=LegacyScreenFit.ContentRect();
         if(initialized && Mathf.Approximately(lastSize,Camera.orthographicSize) && Mathf.Approximately(lastAspect,Camera.aspect) && lastSafe==safe && Time.frameCount>settleUntil)return;
         if(!initialized)

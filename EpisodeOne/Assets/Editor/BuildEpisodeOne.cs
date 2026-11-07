@@ -36,7 +36,7 @@ public static class BuildEpisodeOne
             UnityEditor.Android.AndroidExternalToolsSettings.sdkRootPath = sdk;
             UnityEditor.Android.AndroidExternalToolsSettings.ndkRootPath = ndk;
             UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath = jdk;
-            PlayerSettings.productName = "Dark Nebula Episode One";
+            PlayerSettings.productName = "Dark Nebula";
             PlayerSettings.bundleVersion = "0.4.1";
             PlayerSettings.SplashScreen.show = false;
             PlayerSettings.SplashScreen.showUnityLogo = false;

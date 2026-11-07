@@ -15,8 +15,12 @@ Shader "Dark Nebula/Chinese Text"
    struct v2f {float4 vertex:SV_POSITION;float2 uv:TEXCOORD0;fixed4 color:COLOR;};
    v2f vertShadow(appdata_full v)
    {
-    v2f o;o.vertex=UnityObjectToClipPos(v.vertex);
-    o.vertex.xy+=float2(0.8,-1.2)*2*(_ScreenParams.x/540)/_ScreenParams.xy*o.vertex.w;
+    // Match the bitmap font's lower-left shadow in camera space. Applying
+    // this before projection also handles flipped render textures correctly.
+    float4 view=mul(UNITY_MATRIX_MV,v.vertex);
+    float2 pixelSize=2/(_ScreenParams.xy*abs(float2(UNITY_MATRIX_P._m00,UNITY_MATRIX_P._m11)));
+    view.xy+=float2(-0.8,-1.2)*(_ScreenParams.x/540)*pixelSize;
+    v2f o;o.vertex=mul(UNITY_MATRIX_P,view);
     o.uv=v.texcoord.xy;o.color=v.color;return o;
    }
    fixed4 fragShadow(v2f i):SV_Target

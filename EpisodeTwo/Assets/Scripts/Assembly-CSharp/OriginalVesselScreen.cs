@@ -55,10 +55,7 @@ public sealed class OriginalVesselScreen : MonoBehaviour
         back=Copy(source.BtnGoBack,"Back",-215).GetComponent<SimpleButton>();
         action.ButtonUpEvent+=PurchaseOrEquip;
         back.ButtonUpEvent+=Return;
-        balance=CreateShardDisplay("Shard balance",new Vector3(-150,235,0),true);
-        var anchor=balance.transform.parent.gameObject.AddComponent<ShardBalanceAnchor>();
-        anchor.ViewCamera=back.viewCamera!=null?back.viewCamera:Camera.main;
-        anchor.Icon=balance.transform.parent.Find("Shard icon").GetComponent<Renderer>();
+        balance=CreateShardDisplay("Shard balance",new Vector3(-135,210,0),true);
         details=CreateShardDisplay("Shard price",new Vector3(0,-85,0),false);
         priceDisplay=details.transform.parent.gameObject;
         var art=new GameObject("Vessel preview");art.layer=source.gameObject.layer;
@@ -72,18 +69,18 @@ public sealed class OriginalVesselScreen : MonoBehaviour
         ShardWallet.BalanceChanged+=RefreshDetails;
         Refresh();
     }
-    SimpleText CreateShardDisplay(string name,Vector3 position,bool background)
+    SimpleText CreateShardDisplay(string name,Vector3 position,bool isBalance)
     {
         var root=new GameObject(name);root.layer=gameObject.layer;
         root.transform.SetParent(transform,false);root.transform.localPosition=position;
         var collection=Resources.Load<GameObject>("VesselLockArt/VesselLockCollection").GetComponent<tk2dSpriteCollectionData>();
         var icon=new GameObject("Shard icon");icon.layer=gameObject.layer;
-        icon.transform.SetParent(root.transform,false);icon.transform.localPosition=new Vector3(background?0:-40,0,0);
+        icon.transform.SetParent(root.transform,false);icon.transform.localPosition=new Vector3(isBalance?0:-40,0,0);
         var shard=tk2dSprite.AddComponent(icon,collection,collection.GetSpriteIdByName("HardCurrencyIcon"));
         shard.scale=new Vector3(.5f,.5f,1);
         var label=Instantiate(selector.Value,root.transform).GetComponent<SimpleText>();
-        label.name="Amount";label.transform.localPosition=new Vector3(background?28:15,0,-1);
-        var mesh=label.GetComponent<tk2dTextMesh>();mesh.anchor=background?TextAnchor.MiddleLeft:TextAnchor.MiddleCenter;
+        label.name="Amount";label.transform.localPosition=new Vector3(isBalance?28:15,0,-1);
+        var mesh=label.GetComponent<tk2dTextMesh>();mesh.anchor=isBalance?TextAnchor.MiddleLeft:TextAnchor.MiddleCenter;
         mesh.color=new Color(0,1,0,1);
         return label;
     }

@@ -38,28 +38,7 @@ public class RandomHint : MonoBehaviour
 	private void ShowEntry(Entry pEntry)
 	{
 		_sprite.spriteId = _sprite.GetSpriteIdByName(pEntry.SpriteId);
-		string message=pEntry.StringId.Localize();
-        bool leaderboard = message.ToUpperInvariant().Contains("PALRINGO") || pEntry.StringId == "VIEW YOUR BEST TIMES IN LEADERBOARDS.";
-        _sprite.gameObject.SetActive(!leaderboard);
-        if(leaderboard)
-        {
-            _text.Anchor = TextAnchor.MiddleCenter;
-            _text.Alignment = TextAlignment.Center;
-            _text.WrapWidth = 280f;
-            _text.Wrapping = GamePreferences.Chinese ? DynamicFont.WrapType.NONE : DynamicFont.WrapType.WORD;
-            _text.SetOriginalPos(new Vector3(-transform.localPosition.x, 2f, _text.transform.localPosition.z));
-            _text.Text="VIEW YOUR BEST TIMES IN LEADERBOARDS.";
-        }
-        else
-        {
-            if (GamePreferences.Chinese && pEntry.StringId == "LOADING.HINT.CALIBRATE")
-            {
-                _text.Anchor = TextAnchor.MiddleCenter;
-                _text.Alignment = TextAlignment.Center;
-                _text.Wrapping = DynamicFont.WrapType.NONE;
-                _text.SetOriginalPos(new Vector3(22f, 2f, _text.transform.localPosition.z));
-            }
-            _text.Text=message;
-        }
+		_sprite.gameObject.SetActive(true);
+		_text.Text = pEntry.StringId.Localize();
 	}
 }

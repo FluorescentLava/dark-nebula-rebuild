@@ -1136,9 +1136,29 @@
       "zh": "在排行榜中\n查看你的最佳用时"
     },
     {
+      "key": "LOADING.HINT.ACHIEVEMENTS",
+      "en": "View all 14 achievements and your unlock progress in Achievements.",
+      "zh": "在成就界面查看\n全部 14 项成就\n及解锁进度"
+    },
+    {
+      "key": "LOADING.HINT.CONNECT",
+      "en": "Your progress is saved automatically on this device.",
+      "zh": "游戏进度自动保存\n在当前设备上"
+    },
+    {
+      "key": "LOADING.HINT.STUFF",
+      "en": "Collect shards to unlock more vessels in the vessel screen.",
+      "zh": "收集碎片\n在选球界面\n解锁更多球体"
+    },
+    {
+      "key": "LOADING.HINT.LEADERBOARDS",
+      "en": "View your best times in Leaderboards.",
+      "zh": "在排行榜中查看\n你的最佳用时"
+    },
+    {
       "key": "LOADING.HINT.CALIBRATE",
       "en": "You can recalibrate at any time during the game by pressing the screen with two fingers.",
-      "zh": "游戏中可随时重新校准\n只需用两根手指同时触碰屏幕"
+      "zh": "游戏中可随时重新校准\n只需用两根手指\n同时触碰屏幕"
     },
     {
       "key": "LEVEL 12",

@@ -63,8 +63,6 @@ public class LoadLevelScreen : MonoBehaviour
 		UserSettings.Instance.SetLastSelectedLevel(LevelToLoad, UserSettings.Instance.IsExpertMode);
 		levelName.Text = GetLevelName(LevelToLoad);
         ConfigureLoadingText();
-        foreach(DynamicFont label in helpGroup.GetComponentsInChildren<DynamicFont>(true))
-            if(label.Text!=null && label.Text.ToUpperInvariant().Contains("PALRINGO"))label.Text="VIEW YOUR BEST TIMES IN LEADERBOARDS.";
 		if (LevelToLoad == 1)
 		{
 			helpGroup.SetActive(true);

@@ -14,6 +14,13 @@ public sealed class MenuBackdropExtension : MonoBehaviour
     readonly List<GameObject> objects = new List<GameObject>();
     readonly List<Mesh> meshes = new List<Mesh>();
     float lastSize = -1f, lastAspect = -1f;
+    Vector3 nativeScale, nativePosition;
+    bool hasNativeFrame;
+    float fadeWidth;
+    // Authored MainMenu background bounds; refreshed from the live main menu.
+    // Other scenes use differently scaled copies of this same sprite.
+    static float menuArtworkHeight = 604.8f;
+    static Vector2 menuArtworkOffset = new Vector2(-3.98f, -16.78f);
 
     public static bool UsesMenuArtwork(Renderer backdrop)
     {
@@ -74,6 +81,7 @@ public sealed class MenuBackdropExtension : MonoBehaviour
     void Rebuild()
     {
         if (source == null || Camera == null || material == null) return;
+        FitArtwork();
         if (Mathf.Abs(Vector3.Dot(source.bounds.center-Camera.transform.position,Camera.transform.up)) >
             source.bounds.extents.y+Camera.orthographicSize) return;
         Clear();
@@ -86,9 +94,36 @@ public sealed class MenuBackdropExtension : MonoBehaviour
             backdrop.SetVector("_Up",Camera.transform.up);
             backdrop.SetVector("_Edges",new Vector4(
                 viewCenter-Camera.orthographicSize < lower ? lower : -1000000f,
-                viewCenter+Camera.orthographicSize > upper ? upper : 1000000f,40f,0f));
+                viewCenter+Camera.orthographicSize > upper ? upper : 1000000f,fadeWidth,0f));
         }
         Build(true); Build(false);
+    }
+
+    void FitArtwork()
+    {
+        Transform backdrop = source.transform;
+        if (!hasNativeFrame)
+        {
+            nativeScale = backdrop.localScale;
+            nativePosition = backdrop.localPosition;
+            hasNativeFrame = true;
+        }
+        backdrop.localScale = nativeScale;
+        backdrop.localPosition = nativePosition;
+        float frameScale = Camera.orthographicSize / LegacyScreenFit.MainMenuCameraSize(Camera);
+        fadeWidth = 40f * frameScale;
+        if (gameObject.scene.name == "MainMenu")
+        {
+            menuArtworkHeight = source.bounds.size.y;
+            Vector3 offset = source.bounds.center - Camera.transform.position;
+            menuArtworkOffset = new Vector2(Vector3.Dot(offset, Camera.transform.right), Vector3.Dot(offset, Camera.transform.up));
+            return;
+        }
+        float scale = menuArtworkHeight * frameScale / source.bounds.size.y;
+        backdrop.localScale = Vector3.Scale(nativeScale, new Vector3(scale, scale, 1f));
+        Vector3 target = Camera.transform.position + frameScale * (Camera.transform.right * menuArtworkOffset.x + Camera.transform.up * menuArtworkOffset.y);
+        Vector3 delta = target - source.bounds.center;
+        backdrop.position += Camera.transform.right * Vector3.Dot(delta, Camera.transform.right) + Camera.transform.up * Vector3.Dot(delta, Camera.transform.up);
     }
 
     void Build(bool top)
@@ -99,7 +134,7 @@ public sealed class MenuBackdropExtension : MonoBehaviour
         float edge = source.bounds.extents.y;
         float visible = sign*Vector3.Dot(Camera.transform.position-source.bounds.center,up)+Camera.orthographicSize;
         if (visible <= edge) return;
-        float[] heights = {edge-40f,edge,visible+.25f};
+        float[] heights = {edge-fadeWidth,edge,visible+.25f};
         var positions = new List<Vector3>(); var colors = new List<Color>();
         var triangles = new List<int>();
         for (int row=0;row<3;row++)

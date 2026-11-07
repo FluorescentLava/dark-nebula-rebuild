@@ -10,6 +10,8 @@ public sealed class MenuBackdropExtension : MonoBehaviour
     readonly List<GameObject> objects = new List<GameObject>();
     readonly List<Mesh> meshes = new List<Mesh>();
     Renderer source;
+    Vector3 nativeScale;
+    bool hasNativeScale;
     float lastSize = -1f;
     float lastAspect = -1f;
 
@@ -70,6 +72,16 @@ public sealed class MenuBackdropExtension : MonoBehaviour
     void Rebuild()
     {
         if (source == null || Camera == null) return;
+        if (!hasNativeScale)
+        {
+            nativeScale = source.transform.localScale;
+            hasNativeScale = true;
+        }
+        // Other pages keep their larger control camera. Compensate only the
+        // backdrop so the shared artwork and its edge bands project exactly
+        // as they do behind the main menu.
+        float mainMenuSize = LegacyScreenFit.MainMenuCameraSize(Camera);
+        source.transform.localScale = nativeScale * (Camera.orthographicSize / mainMenuSize);
         if (Mathf.Abs(Vector3.Dot(source.bounds.center-Camera.transform.position,Camera.transform.up)) >
             source.bounds.extents.y+Camera.orthographicSize) return;
         Clear();

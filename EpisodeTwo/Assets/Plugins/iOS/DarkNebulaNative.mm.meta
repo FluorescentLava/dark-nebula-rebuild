@@ -23,7 +23,7 @@ PluginImporter:
       settings:
         AddToEmbeddedBinaries: false
         CompileFlags:
-        FrameworkDependencies: UIKit
+        FrameworkDependencies: CoreHaptics
   userData:
   assetBundleName:
   assetBundleVariant:

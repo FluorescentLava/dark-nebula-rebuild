@@ -36,10 +36,9 @@ public static class GameHaptics
         new long[] { 0, 40, 55, 65 }, new int[] { 0, 160, 0, 230 },
         new long[] { 0, 45, 55, 80 });
     static readonly Pattern score = new Pattern(10,
-        new long[] { 0, 45 }, new int[] { 0, 200 }, new long[] { 0, 55 });
+        new long[] { 0, 25 }, new int[] { 0, 200 }, new long[] { 0, 25 });
     static readonly Pattern star = new Pattern(60,
-        new long[] { 0, 50, 45, 80 }, new int[] { 0, 255, 0, 255 },
-        new long[] { 0, 65, 45, 95 });
+        new long[] { 0, 25 }, new int[] { 0, 255 }, new long[] { 0, 25 });
     static readonly Pattern damage = new Pattern(80,
         new long[] { 0, 90 }, new int[] { 0, 230 }, new long[] { 0, 110 });
     static readonly Pattern death = new Pattern(100,
@@ -133,12 +132,12 @@ public static class GameHaptics
         if (kind == HapticEvent.Score)
         {
             DarkNebulaScoreTick();
-            duration = .045f;
+            duration = .025f;
         }
         else if (kind == HapticEvent.Star)
         {
             DarkNebulaStarAward();
-            duration = .1f;
+            duration = .025f;
         }
         else
         {

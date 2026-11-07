@@ -49,7 +49,9 @@ public sealed class OriginalVesselScreen : MonoBehaviour
             background.SetActive(true);
         }
         selected=VesselSkins.Selected;
-        selector=Copy(source.FlipperMusic,"Vessel selector",150).GetComponent<FlipperButton>();
+        const float titleGap=8f;
+        selector=Copy(source.FlipperMusic,"Vessel selector",150f-titleGap).GetComponent<FlipperButton>();
+        selector.Title.transform.localPosition+=Vector3.up*titleGap;
         selector.EventChoiceChanged+=Choose;
         action=Copy(source.BtnCalibrateControls,"Purchase or equip",-145).GetComponent<SimpleButton>();
         back=Copy(source.BtnGoBack,"Back",-215).GetComponent<SimpleButton>();

@@ -33,7 +33,7 @@ public class CameraSize : MonoBehaviour
             {
                 if(panel==null || panel.gameObject.scene!=gameObject.scene)continue;
                 string type=panel.GetType().Name;
-                if(type!="PauseScreen" && type!="GameOverScreen" && type!="Alert" && type!="ConfirmScreen" && type!="OptionScreen" && type!="IngameOptionScreen" && type!="CalibrateScreen" && type!="SpheroConnectScreen")continue;
+                if(type!="PauseScreen" && type!="GameOverScreen" && type!="Alert" && type!="ConfirmScreen" && type!="IngameOptionScreen" && type!="CalibrateScreen" && type!="SpheroConnectScreen")continue;
                 var layout=panel.GetComponent<MenuContentFit>();
                 if(layout==null)layout=panel.gameObject.AddComponent<MenuContentFit>();
                 layout.Camera=_camera;

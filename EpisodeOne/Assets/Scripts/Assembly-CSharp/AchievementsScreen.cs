@@ -12,7 +12,7 @@ public sealed class AchievementsScreen : MonoBehaviour
     int page;
     bool closing;
 
-    public static void Open(OptionScreen template, System.Action closed)
+    public static void Open(IngameOptionScreen template, System.Action closed)
     {
         var root = new GameObject("Achievements");
         root.layer = template.gameObject.layer;
@@ -38,10 +38,10 @@ public sealed class AchievementsScreen : MonoBehaviour
         return copy;
     }
 
-    void Initialize(OptionScreen template)
+    void Initialize(IngameOptionScreen template)
     {
         Transform background = template.transform.Find("Background");
-        if (background != null)
+        if (background != null && background.gameObject.activeSelf)
         {
             var copy = Instantiate(background.gameObject, transform);
             copy.name = "Background";

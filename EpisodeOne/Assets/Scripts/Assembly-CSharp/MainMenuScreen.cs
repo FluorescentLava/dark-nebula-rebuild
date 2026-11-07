@@ -32,7 +32,7 @@ public class MainMenuScreen : MonoBehaviour
 
 	public Transform Container;
 
-	private OptionScreen _optionScreen;
+	private IngameOptionScreen _optionScreen;
 
 	private CalibrateScreen _calibrateScreen;
 
@@ -84,8 +84,7 @@ public class MainMenuScreen : MonoBehaviour
 		_optionsButton.GetComponentInChildren<DynamicFont>().Text = "OPTIONS".Localize();
 		_leaderboardsButton.GetComponentInChildren<DynamicFont>().Text = "LEADERBOARDS".Localize();
 		_quitButton.GetComponentInChildren<DynamicFont>().Text = "QUIT".Localize();
-		_optionScreen = GetComponentInChildren<OptionScreen>();
-		_optionScreen.gameObject.SetActive(false);
+		_optionScreen = IngameOptionScreen.Create(transform, true);
 		_optionScreen.EventGoBack += onCloseOptionScreen;
 		_optionScreen.EventLaunchCalibrateControls += onLaunchCalibrate;
 		_calibrateScreen = GetComponentInChildren<CalibrateScreen>();

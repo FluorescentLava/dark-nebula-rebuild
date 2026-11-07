@@ -89,8 +89,7 @@ public class Hud : MonoBehaviour
 		_pauseScreen.gameObject.SetActive(false);
 		_pauseScreen.EventResumeGame += onResumeGame;
 		_pauseScreen.EventLaunchOptions += onLaunchOptions;
-		_optionScreen = GetComponentInChildren<IngameOptionScreen>();
-		_optionScreen.gameObject.SetActive(false);
+		_optionScreen = IngameOptionScreen.Create(transform, false);
 		_optionScreen.EventGoBack += onCloseIngameOptions;
 		_optionScreen.EventLaunchCalibrateControls += onLaunchCalibrateScreen;
 		_calibrateScreen = GetComponentInChildren<CalibrateScreen>();

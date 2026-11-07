@@ -278,8 +278,16 @@ public class MainMenuScreen : MonoBehaviour
 		StartCoroutine(LoadLevel("Leaderboard"));
 	}
 
+#if UNITY_IOS && !UNITY_EDITOR
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern void DarkNebulaOpenEpisodeTwo();
+#endif
+
 	private void onEpisodeTwo(SimpleButton source)
 	{
+#if UNITY_IOS && !UNITY_EDITOR
+        DarkNebulaOpenEpisodeTwo();
+#else
 #if UNITY_ANDROID && !UNITY_EDITOR
         try
         {
@@ -291,19 +299,14 @@ public class MainMenuScreen : MonoBehaviour
                 intent.Call<AndroidJavaObject>("addFlags",0x10000000);
                 activity.Call("startActivity",intent);
             }
+            return;
         }
         catch(System.Exception)
         {
-            Confirm("EPISODE TWO");
-            _alertScreen.SetTitleText("EPISODE TWO");
-            _alertScreen.SetBodyText("INSTALL EPISODE TWO TO OPEN IT.");
-            _alertScreen.EventYES += onCloseConfirmScreen;
+            // Fall back to the download page when Episode Two cannot be launched.
         }
-#else
-        Confirm("EPISODE TWO");
-        _alertScreen.SetTitleText("EPISODE TWO");
-        _alertScreen.SetBodyText("OPEN THE EPISODE TWO PROJECT.");
-        _alertScreen.EventYES += onCloseConfirmScreen;
+#endif
+        Application.OpenURL("https://github.com/FluorescentLava/dark-nebula-rebuild/releases");
 #endif
 	}
 }

@@ -26,6 +26,8 @@ public class LevelCompleteSection : MonoBehaviour
 
 	private bool _sectionDone;
 
+	public virtual bool IsCounting { get { return false; } }
+
 	public virtual void Start()
 	{
 		Container.SetActive(false);

@@ -99,6 +99,16 @@ public class MainMenuScreen : MonoBehaviour
 		{
 			simpleButton.enabled = on;
 		}
+		bool hasProgress = UserSettings.I.GetHasAnyProgress();
+		btn1.GetComponentInChildren<SimpleButton>().enabled = on && hasProgress;
+		tk2dTextMesh continueLabel = btn1.GetComponentInChildren<tk2dTextMesh>();
+		Color continueColor = continueLabel.color;
+		continueColor.a = hasProgress ? 1f : 0.35f;
+		continueLabel.color = continueColor;
+		continueColor = continueLabel.color2;
+		continueColor.a = hasProgress ? 1f : 0.35f;
+		continueLabel.color2 = continueColor;
+		continueLabel.Commit();
 		if (on)
 		{
 			gameObject.transform.localPosition = Vector3.zero;
@@ -193,7 +203,10 @@ public class MainMenuScreen : MonoBehaviour
 		_startingNewGame = true;
 		CloseConfirmation();
 		SetEnabled(false);
-		StartCoroutine(PlayIntro(true, eraseProgress));
+		if (eraseProgress) EraseProgress();
+		LoadLevelScreen.LevelToLoad = 1;
+		World.IsRestart = false;
+		StartCoroutine(LoadLevel("LoadLevel"));
 	}
 
 	private void EraseProgress()
@@ -215,6 +228,7 @@ public class MainMenuScreen : MonoBehaviour
 
 	private void onContinueGame(SimpleButton source)
 	{
+		if (!_isEnabled || !UserSettings.I.GetHasAnyProgress()) return;
 		StartCoroutine(LoadLevel("LevelSelect"));
 	}
 
@@ -293,7 +307,7 @@ public class MainMenuScreen : MonoBehaviour
 		StartCoroutine(LoadLevel("Credits"));
 	}
 
-	private IEnumerator PlayIntro(bool startNewGame = false, bool eraseProgress = false)
+	private IEnumerator PlayIntro()
 	{
 		StoryMoviePlayer.Playback movie = StoryMoviePlayer.Play(this, StoryMoviePlayer.Intro);
 		while (!movie.IsDone) yield return null;
@@ -302,20 +316,7 @@ public class MainMenuScreen : MonoBehaviour
 		while (StoryMoviePlayer.SkipInputHeld) yield return null;
 		yield return null;
 		if (!isActiveAndEnabled) yield break;
-		if (startNewGame && movie.Outcome != StoryMoviePlayer.Result.Cancelled)
-		{
-			// Commit the accepted reset only after playback has finished and the
-			// menu still owns the transition. Failed video keeps New Game usable.
-			if (eraseProgress) EraseProgress();
-			LoadLevelScreen.LevelToLoad = 1;
-			World.IsRestart = false;
-			yield return LoadLevel("LoadLevel");
-		}
-		else
-		{
-			_startingNewGame = false;
-			SetEnabled(true);
-		}
+		SetEnabled(true);
 	}
 
 	private void onEpisodeTwo(SimpleButton source)

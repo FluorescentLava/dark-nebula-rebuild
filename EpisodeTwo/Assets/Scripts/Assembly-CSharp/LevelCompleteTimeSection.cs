@@ -8,6 +8,11 @@ public class LevelCompleteTimeSection : LevelCompleteSection
 
 	private bool done;
 
+	public override bool IsCounting
+	{
+		get { return startTime != 0f && !done && LevelCompleteScreen.Result.CompletionTime > 0f && Time.time - startTime < TickDuration; }
+	}
+
 	public override void Start()
 	{
 		base.Start();
@@ -44,7 +49,7 @@ public class LevelCompleteTimeSection : LevelCompleteSection
 		if (startTime != 0f && !done)
 		{
 			float num = Time.time - startTime;
-			float num2 = Mathf.Min(1f, num / 1.6666666f);
+			float num2 = Mathf.Min(1f, num / TickDuration);
 			float time = LevelCompleteScreen.Result.CompletionTime * num2;
 			Value.GetComponent<SimpleText>().SetText(ToTimeString(time));
 			if (num2 == 1f)

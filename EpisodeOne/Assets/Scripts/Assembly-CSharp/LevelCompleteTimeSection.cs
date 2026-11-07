@@ -16,6 +16,11 @@ public class LevelCompleteTimeSection : LevelCompleteSection
 
 	private int totalMissingOrbs;
 
+	public override bool IsCounting
+	{
+		get { return startTime != 0f && !done && totalMissingOrbs > 0 && Time.time - startTime < TickDuration; }
+	}
+
 	public override void Start()
 	{
 		base.Start();
@@ -53,7 +58,7 @@ public class LevelCompleteTimeSection : LevelCompleteSection
 		}
 		_penaltyText.gameObject.SetActive(true);
 		float num = Time.time - startTime;
-		float num2 = Mathf.Min(1f, num / 1.6666666f);
+		float num2 = Mathf.Min(1f, num / TickDuration);
 		int num3 = Mathf.CeilToInt((float)totalMissingOrbs * num2);
 		int num4 = totalMissingOrbs - num3;
 		if (num3 != _previousOrbCount)

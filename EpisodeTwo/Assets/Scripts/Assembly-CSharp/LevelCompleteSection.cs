@@ -34,6 +34,8 @@ public class LevelCompleteSection : MonoBehaviour
 
 	public event SignalStar EventStar;
 
+	public virtual bool IsCounting { get { return false; } }
+
 	public virtual void Start()
 	{
 		Renderer[] componentsInChildren = GetComponentsInChildren<Renderer>();

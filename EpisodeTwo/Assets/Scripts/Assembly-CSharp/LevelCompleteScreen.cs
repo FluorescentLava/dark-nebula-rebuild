@@ -239,6 +239,14 @@ public class LevelCompleteScreen : MonoBehaviour
 		OnStopTick();
 	}
 
+	private void LateUpdate()
+	{
+		bool counting = _initialized && !_done && !_skipping && currentSection >= 0
+			&& currentSection < sections.Length && sections[currentSection].IsCounting;
+		if (counting) GameHaptics.Play(HapticEvent.Score);
+		else GameHaptics.StopScore();
+	}
+
 	private void OnDestroy()
 	{
 		_initialized = false;
@@ -265,13 +273,13 @@ public class LevelCompleteScreen : MonoBehaviour
 
 	private void OnStartTick()
 	{
-        GameHaptics.Play(HapticEvent.Score);
 		Audio.PlayLoop("Tick", SfxTick);
 		Invoke("OnStopTick", 1.6666666f);
 	}
 
 	private void OnStopTick()
 	{
+		GameHaptics.StopScore();
 		Audio.Stop("Tick", 0.1f);
 	}
 
@@ -293,6 +301,7 @@ public class LevelCompleteScreen : MonoBehaviour
 	{
 		if (!_initialized || _done) return;
 		_done = true;
+		GameHaptics.StopScore();
 		OnStopTick();
 		RevealName(true);
 		if (_gotBetterStarThenLast && UserSettings.I.GetIsAllGold(1, 19, Result.Expert))

@@ -143,6 +143,16 @@ public class LevelCompleteScreen : MonoBehaviour
 		Audio.Play("star" + Random.value, (!big) ? SfxStar : SfxStarBig);
 	}
 
+	private void LateUpdate()
+	{
+		bool counting = _initialized && !_done && !_skipping && currentSection >= 0
+			&& currentSection < sections.Length && sections[currentSection].IsCounting;
+		if (counting) GameHaptics.Play(HapticEvent.Score);
+		else GameHaptics.StopScore();
+	}
+
+	private void OnDisable() { GameHaptics.StopScore(); }
+
 	private void OnDestroy()
 	{
 		_initialized = false;
@@ -167,7 +177,6 @@ public class LevelCompleteScreen : MonoBehaviour
 
 	private void OnTick()
 	{
-        GameHaptics.Play(HapticEvent.Score);
 		Audio.Play("Tick" + Random.value, SfxTick);
 	}
 
@@ -192,6 +201,7 @@ public class LevelCompleteScreen : MonoBehaviour
 	{
 		if (!_initialized || _done) return;
 		_done = true;
+		GameHaptics.StopScore();
 		DarkNebulaAchievements.Instance.SyncAchievements();
 		if (nameInput != null) nameInput.Reveal(true);
 		ContinueButton.gameObject.SetActive(true);

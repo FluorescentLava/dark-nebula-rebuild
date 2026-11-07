@@ -36,9 +36,7 @@ public static class GameHaptics
         new long[] { 0, 40, 55, 65 }, new int[] { 0, 160, 0, 230 },
         new long[] { 0, 45, 55, 80 });
     static readonly Pattern score = new Pattern(10,
-        new long[] { 0, 18, 170, 18, 170, 18, 170, 18, 170, 18 },
-        new int[] { 0, 85, 0, 100, 0, 115, 0, 130, 0, 145 },
-        new long[] { 0, 28, 170, 28, 170, 28, 170, 28, 170, 28 });
+        new long[] { 0, 18 }, new int[] { 0, 85 }, new long[] { 0, 28 });
     static readonly Pattern star = new Pattern(60,
         new long[] { 0, 28, 35, 45 }, new int[] { 0, 140, 0, 220 },
         new long[] { 0, 35, 40, 55 });
@@ -126,14 +124,22 @@ public static class GameHaptics
         if (now < activeUntil && pattern.Priority <= activePriority) return;
         if (kind == HapticEvent.CriticalPickup && now - lastCriticalPickup < .075f) return;
         if (kind == HapticEvent.Pickup && now - lastPickup < .075f) return;
-        if (kind == HapticEvent.Score && now - lastScore < .8f) return;
+        if (kind == HapticEvent.Score && now - lastScore < .188f) return;
 
         float duration = 0f;
 #if UNITY_ANDROID && !UNITY_EDITOR
         duration = PlayAndroid(pattern);
 #elif UNITY_IOS && !UNITY_EDITOR
-        Handheld.Vibrate();
-        duration = .65f;
+        if (kind == HapticEvent.Score)
+        {
+            DarkNebulaScoreTick();
+            duration = .018f;
+        }
+        else
+        {
+            Handheld.Vibrate();
+            duration = .65f;
+        }
 #endif
         // A failed/unsupported backend must not consume an event's cooldown.
         if (duration <= 0f) return;
@@ -142,6 +148,17 @@ public static class GameHaptics
         if (kind == HapticEvent.CriticalPickup) lastCriticalPickup = lastPickup = now;
         if (kind == HapticEvent.Pickup) lastPickup = now;
         if (kind == HapticEvent.Score) lastScore = now;
+    }
+
+#if UNITY_IOS && !UNITY_EDITOR
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    static extern void DarkNebulaScoreTick();
+#endif
+
+    // A score ending must not cancel a star, damage or another stronger event.
+    public static void StopScore()
+    {
+        if (activePriority == score.Priority) Cancel();
     }
 
     static Pattern PatternFor(HapticEvent kind)

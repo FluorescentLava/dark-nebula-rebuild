@@ -4,7 +4,7 @@
 
 A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for modern mobile devices, combining content recovered from the iOS and Android releases.
 
-## Features (0.3.7)
+## Features (0.4.0-Beta)
 
 ### Core features
 
@@ -13,7 +13,7 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 - [x] Episode Two's generated portal scenery shares the native bridge layer and stays aligned as the camera rises and rotates.
 - [x] Local progress, level ratings and leaderboards.
 - [x] Level completion results with skippable scoring animations.
-- [x] Restored Episode Two intro and extro movies with their original soundtracks and two-step skip controls. A first tap shows a gray prompt in the game's sci-fi font; release, then tap the prompt to skip. The intro plays on the first main-menu entry and whenever New Game is accepted, before the first level starts. Credits plays the extro and returns to the main menu, while completing the campaign plays the extro before EndOfGame.
+- [x] Restored Episode Two intro and extro movies with their original soundtracks and two-step skip controls. A first tap shows a gray prompt in the game's sci-fi font; release, then tap the prompt to skip. The intro plays on the first main-menu entry. New Game starts the first level without replaying it. Credits plays the extro and returns to the main menu, while completing the campaign plays the extro before EndOfGame.
 - [x] iOS Unity export, Xcode compilation and unsigned IPA packaging verified for both episodes.
 
 ### Extensions
@@ -30,6 +30,14 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 - [x] Enhanced vibration with decaying multi-pulse jump-pad feedback, light ordinary-pickup and medium shard/1UP feedback, and 650 ms death feedback protected from weaker events.
 - [x] Background sensor calibration before each level starts.
 - [x] WASD controls for Windows Unity debugging, excluded from Release builds.
+
+## 0.4.0-Beta update
+
+Episode One’s Episode Two button opens the installed app on Android and iOS, or opens this repository’s [Releases page](https://github.com/FluorescentLava/dark-nebula-rebuild/releases) when it cannot launch Episode Two. The iOS app registers its launch URL scheme. Both iOS exports now assign each episode’s original artwork to every supported application-icon slot, including iPhone, iPad and the App Store icon.
+
+Both iOS apps hide the status bar. Episode Two disables and dims Continue when there is no level progress, including after the first intro and after returning from settings. New Game starts the first level directly without replaying the intro; existing progress still requires confirmation before it is reset.
+
+Enhanced score feedback now follows the actual number animations in both episodes. Short pulses continue while counting, stop when counting ends or is skipped, and preserve higher-priority star feedback. iOS uses light native impacts for these score pulses.
 
 ## 0.3.7 update
 

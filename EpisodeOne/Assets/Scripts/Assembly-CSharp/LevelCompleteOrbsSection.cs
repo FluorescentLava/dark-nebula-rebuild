@@ -13,6 +13,11 @@ public class LevelCompleteOrbsSection : LevelCompleteSection
 
 	private bool done;
 
+	public override bool IsCounting
+	{
+		get { return startTime != 0f && !done && LevelCompleteScreen.Result.OrbsOnLevel > LevelCompleteScreen.Result.OrbsCollected && Time.time - startTime < TickDuration; }
+	}
+
 	public override void Start()
 	{
 		base.Start();
@@ -40,7 +45,7 @@ public class LevelCompleteOrbsSection : LevelCompleteSection
 			return;
 		}
 		float num = Time.time - startTime;
-		float num2 = Mathf.Min(1f, num / 1.6666666f);
+		float num2 = Mathf.Min(1f, num / TickDuration);
 		int num3 = LevelCompleteScreen.Result.OrbsOnLevel - LevelCompleteScreen.Result.OrbsCollected;
 		if (num3 == 0)
 		{

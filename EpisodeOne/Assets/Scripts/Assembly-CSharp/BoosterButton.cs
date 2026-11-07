@@ -29,6 +29,8 @@ public class BoosterButton : SimpleButton
 
 	private new void Start()
 	{
+		// The unlock badge has its own art below this control's root.
+		LegacyControlTextLayout.Bind(_buyIcon.GetComponentInChildren<DynamicFont>(true), _buyIcon.GetComponent<Renderer>());
 		_nameText.Text = _booster.LocalisedName;
 		_iconLocked.SetSprite(_booster.SpriteCollection, _booster.LockedIconID);
 		_iconEnabled.SetSprite(_booster.SpriteCollection, _booster.EnabledIconID);

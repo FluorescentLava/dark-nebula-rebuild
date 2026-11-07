@@ -28,6 +28,9 @@ public class CameraSize : MonoBehaviour
     private void Start()
     {
         FixAspect();
+        bool hasMenuBackdrop=false;
+        foreach(Renderer backdrop in transform.root.GetComponentsInChildren<Renderer>(true))
+            if(backdrop.name=="Background")hasMenuBackdrop|=MenuBackdropExtension.TryApply(_camera,backdrop);
         if (IsHud || !_levelScene)
         {
             foreach(MonoBehaviour panel in UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include))
@@ -59,7 +62,7 @@ public class CameraSize : MonoBehaviour
         }
         if (_mainMenu)
         {
-            var backdrop=gameObject.AddComponent<MenuBackdropExtension>();backdrop.Camera=_camera;
+            if(!hasMenuBackdrop){var backdrop=gameObject.AddComponent<MenuBackdropExtension>();backdrop.Camera=_camera;}
             foreach(Transform t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include))
             {
                 if(t.gameObject.scene != gameObject.scene || t.name != "MenuScreen") continue;

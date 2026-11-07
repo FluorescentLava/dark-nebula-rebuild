@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Loading art covers the view at its original aspect; other flat page backdrops
-// keep the existing mirrored margins outside their authored bounds.
+// Menu artwork shares its original edge treatment across pages. Other backdrops
+// retain their original cover or mirrored margins.
 public class BackdropMargins : MonoBehaviour
 {
     public Camera Camera;
@@ -30,6 +30,8 @@ public class BackdropMargins : MonoBehaviour
             if(value>area){area=value;source=r;}
         }
         if(source==null)yield break;
+        // Every page using the menu artwork shares the main menu's edge treatment.
+        if(MenuBackdropExtension.TryApply(Camera,source)){enabled=false;yield break;}
         if(CoverOriginal)
         {
             nativeScale=source.transform.localScale;

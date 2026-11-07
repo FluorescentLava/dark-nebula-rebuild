@@ -13,6 +13,22 @@ public sealed class MenuBackdropExtension : MonoBehaviour
     float lastSize = -1f;
     float lastAspect = -1f;
 
+    public static bool UsesMenuArtwork(Renderer backdrop)
+    {
+        return backdrop != null && backdrop.sharedMaterial != null &&
+            backdrop.sharedMaterial.mainTexture != null && backdrop.sharedMaterial.mainTexture.name == "UI_MenuBackground";
+    }
+
+    public static bool TryApply(Camera camera, Renderer backdrop)
+    {
+        if (camera == null || !UsesMenuArtwork(backdrop) || (camera.cullingMask & (1 << backdrop.gameObject.layer)) == 0) return false;
+        var extension = backdrop.GetComponent<MenuBackdropExtension>();
+        if (extension == null) extension = backdrop.gameObject.AddComponent<MenuBackdropExtension>();
+        extension.Camera = camera;
+        extension.source = backdrop;
+        return true;
+    }
+
     struct Vertex
     {
         public Vector3 point;
@@ -29,7 +45,7 @@ public sealed class MenuBackdropExtension : MonoBehaviour
     {
         yield return null;
         if (Camera == null) yield break;
-        foreach (MainMenuScreen menu in Object.FindObjectsByType<MainMenuScreen>(FindObjectsInactive.Include))
+        if (source == null) foreach (MainMenuScreen menu in Object.FindObjectsByType<MainMenuScreen>(FindObjectsInactive.Include))
         {
             if (menu.gameObject.scene != gameObject.scene) continue;
             Transform backdrop = menu.transform.Find("Background");

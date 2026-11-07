@@ -5,8 +5,8 @@ extern "C" void DarkNebulaScoreTick()
 {
     static UIImpactFeedbackGenerator *feedback;
     if (feedback == nil)
-        feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
-    [feedback impactOccurredWithIntensity:0.35];
+        feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+    [feedback impactOccurredWithIntensity:1.0];
     [feedback prepare];
 }
 

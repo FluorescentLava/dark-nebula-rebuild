@@ -36,7 +36,7 @@ public static class GameHaptics
         new long[] { 0, 40, 55, 65 }, new int[] { 0, 160, 0, 230 },
         new long[] { 0, 45, 55, 80 });
     static readonly Pattern score = new Pattern(10,
-        new long[] { 0, 18 }, new int[] { 0, 85 }, new long[] { 0, 28 });
+        new long[] { 0, 45 }, new int[] { 0, 200 }, new long[] { 0, 55 });
     static readonly Pattern star = new Pattern(60,
         new long[] { 0, 28, 35, 45 }, new int[] { 0, 140, 0, 220 },
         new long[] { 0, 35, 40, 55 });
@@ -133,7 +133,7 @@ public static class GameHaptics
         if (kind == HapticEvent.Score)
         {
             DarkNebulaScoreTick();
-            duration = .018f;
+            duration = .045f;
         }
         else
         {

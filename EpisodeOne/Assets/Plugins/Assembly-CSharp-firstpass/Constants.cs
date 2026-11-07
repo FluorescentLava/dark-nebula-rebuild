@@ -69,7 +69,6 @@ public class Constants
 
 	public const string PalringoLeaderboardTotal = "total";
 
-	public const string SceneIAPShop = "IAPShop";
 
 	public const string SceneMainMenu = "MainMenu";
 
@@ -103,7 +102,6 @@ public class Constants
 
 	public const string ChartboostBoosterShop = "BoosterShop";
 
-	public const string ChartboostIAPShop = "IAPShop";
 
 	public const string ChartboostAvatarSelect = "AvatarSelect";
 

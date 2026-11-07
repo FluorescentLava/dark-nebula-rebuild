@@ -78,8 +78,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Screens/StubLoader.unity
   - enabled: 1
-    path: Assets/Scenes/Screens/IAPShop.unity
-  - enabled: 1
     path: Assets/Scenes/Screens/AvatarShop.unity
   - enabled: 1
     path: Assets/Scenes/Screens/GateLock.unity

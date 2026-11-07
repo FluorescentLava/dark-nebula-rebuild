@@ -176,19 +176,60 @@ public class AnimatedEntity : Entity
 
 	private void OnStartPresentation()
 	{
+		if (onPresentationStarted) return;
 		onPresentationStarted = true;
-		base.GetComponent<Collider>().enabled = true;
-		SetRenderersEnabled(true);
 		presentationAnimation = new CurveAnimation();
 		presentationAnimation.shouldLoop = false;
 		AnimatedEntityNode animatedEntityNode = nodes[0];
 		Vector2 position = animatedEntityNode.position;
 		Vector2 p = position + new Vector2(0f, -100f);
+		if (IsTallPlatformPresentation())
+		{
+			// Begin with the entire platform above the real screen edge. The
+			// authored 100-unit entrance can already be visible on a tall display.
+			SetPosition(p);
+			Camera camera = World.cameraFollow.GetComponent<Camera>();
+			Bounds bounds = Sprite.GetComponent<Renderer>().bounds;
+			float depth = camera.WorldToViewportPoint(bounds.center).z;
+			float top = camera.ViewportToWorldPoint(new Vector3(.5f, 1f, depth)).z;
+			Vector3 offset = Vector3.forward * Mathf.Max(0f, top + 16f - bounds.min.z);
+			if (transform.parent != null) offset = transform.parent.InverseTransformVector(offset);
+			p += new Vector2(offset.x, -offset.z);
+		}
 		CurveAnimationTimeFunction timeFunction = new CurveAnimationTimeFunction(0.1f, 0.2f, 3f);
 		presentationAnimation.addNode(p, 3f, timeFunction);
 		presentationAnimation.addNode(position, 0f, null);
 		presentationAnimation.prepare();
 		presentationAnimation.play();
+		presentationAnimation.update();
+		SetPosition(presentationAnimation.getPosition());
+		base.GetComponent<Collider>().enabled = true;
+		SetRenderersEnabled(true);
+	}
+
+	private bool IsTallPlatformPresentation()
+	{
+		return canBeBorded && nodes != null && nodes.Count > 0 && World.cameraFollow != null
+			&& GetParameterInt("activatePresentationEventCount") > 0
+			&& World.cameraFollow.GetComponent<Camera>().aspect < LegacyScreenFit.ReferenceAspect - .001f;
+	}
+
+	private void UpdatePlatformPresentation()
+	{
+		if (onPresentationStarted || !IsTallPlatformPresentation() || Sprite == null) return;
+		// This event only introduces the artwork. Boarding and travel still use
+		// their original flags; the later native event must not restart the entry.
+		Vector3 endpoint = transform.localPosition;
+		endpoint.x = nodes[0].x;
+		endpoint.z = -nodes[0].y;
+		if (transform.parent != null) endpoint = transform.parent.TransformPoint(endpoint);
+		Bounds bounds = Sprite.GetComponent<Renderer>().bounds;
+		bounds.center += endpoint - transform.position;
+		Vector2 visible = World.VisibleHalfSize;
+		Vector3 center = World.cameraFollow.transform.position;
+		if (bounds.min.z <= center.z + visible.y + 60f && bounds.max.z >= center.z - visible.y
+			&& bounds.min.x <= center.x + visible.x + 60f && bounds.max.x >= center.x - visible.x - 60f)
+			OnStartPresentation();
 	}
 
 	private void vesselAttached()
@@ -198,6 +239,7 @@ public class AnimatedEntity : Entity
 
 	public virtual void Update()
 	{
+		UpdatePlatformPresentation();
 		if (isCrusher || dontAffectPlayer)
 		{
 			updateCrusher();
@@ -246,6 +288,8 @@ public class AnimatedEntity : Entity
 		{
 			curveAnimation.update();SetPosition(curveAnimation.getPosition());
 		}
+		var body = GetComponent<Rigidbody>();
+		if (body != null && body.isKinematic) body.position = transform.position;
 	}
 
 	private void SetPosition(Vector2 pPos)

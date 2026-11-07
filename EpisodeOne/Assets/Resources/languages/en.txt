@@ -36,7 +36,7 @@ PURCHASE HEADER=Unlock upgrade
 PURCHASE=Purchase
 CANCEL=Cancel
 HC NEEDED=Not enough shards
-HC NEEDED TEXT=You need to buy more shards for this item. continue to shop?
+HC NEEDED TEXT=Not enough shards to make this purchase.
 
 # Booster In-game
 HC PICKUP=Shard

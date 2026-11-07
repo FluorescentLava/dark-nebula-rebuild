@@ -1,6 +1,16 @@
 {
   "entries": [
     {
+      "key": "HC NEEDED",
+      "en": "Not enough shards",
+      "zh": "碎片不足"
+    },
+    {
+      "key": "HC NEEDED TEXT",
+      "en": "Not enough shards to make this purchase.",
+      "zh": "碎片不足，无法购买"
+    },
+    {
       "key": "SUBTITLE",
       "en": "Episode One",
       "zh": "第一章"

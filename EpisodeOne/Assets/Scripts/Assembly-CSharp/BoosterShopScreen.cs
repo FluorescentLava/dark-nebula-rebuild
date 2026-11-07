@@ -28,6 +28,7 @@ public class BoosterShopScreen : MonoBehaviour
 	private CameraFade fade;
 
 	private bool _isEnabled = true;
+	private int inputEnabledFrame;
 
 	private string _previousScene = "BoosterSelection";
 
@@ -46,6 +47,7 @@ public class BoosterShopScreen : MonoBehaviour
 		_purchaseButton.Text = "BUY".Localize();
 		_menuHeader.SetTitleID("PURCHASE HEADER");
 		_alertScreen.gameObject.SetActive(false);
+		_alertScreen.EventYES += HideInsufficientShards;
 		_isEnabled = true;
 		fade = base.gameObject.AddComponent<CameraFade>();
 		fade.FadeIn();
@@ -66,42 +68,24 @@ public class BoosterShopScreen : MonoBehaviour
 		_currentProduct = pBooster;
 	}
 
-	private void ShowConfirmBuyHCScreen()
+	private void ShowInsufficientShards()
 	{
+		_isEnabled = false;
+		_purchaseButton.enabled = false;
+		_menuHeader.BackButton.enabled = false;
+		_alertScreen.SetAcknowledgementOnly();
 		_alertScreen.gameObject.SetActive(true);
 		_alertScreen.SetTitle("HC NEEDED");
 		_alertScreen.SetBody("HC NEEDED TEXT");
-		_alertScreen.EventYES += GotoHCShop;
-		_alertScreen.EventNO += HideConfirmBuyHCScreen;
 	}
 
-	private void HideConfirmBuyHCScreen()
+	private void HideInsufficientShards()
 	{
 		_alertScreen.gameObject.SetActive(false);
-		_alertScreen.EventYES -= GotoHCShop;
-		_alertScreen.EventNO -= HideConfirmBuyHCScreen;
-	}
-
-	private void GotoHCShop()
-	{
-		HideConfirmBuyHCScreen();
-		StartCoroutine(LoadStore());
-	}
-
-	private IEnumerator LoadStore()
-	{
-		IAPShopScreen.PreviousScene = Application.loadedLevelName;
-		CameraFade fade = Object.FindObjectOfType<CameraFade>();
-		if (fade != null)
-		{
-			fade.FadeOut();
-			yield return new WaitForSeconds(0.5f);
-		}
-		else
-		{
-			Debug.LogWarning("Found no camera fade. There should be one...");
-		}
-		Application.LoadLevel("IAPShop");
+		_isEnabled = true;
+		inputEnabledFrame = Time.frameCount;
+		_purchaseButton.enabled = true;
+		_menuHeader.BackButton.enabled = true;
 	}
 
 	private void NotifyFlurryOfCurrentBooster()
@@ -123,6 +107,7 @@ public class BoosterShopScreen : MonoBehaviour
 
 	private void HandlePurchaseEvent(SimpleButton pButton)
 	{
+		if (!_isEnabled) return;
 		if (HardCurrencyManager.Instance.Spend(_currentProduct.Price))
 		{
 			NotifyFlurryOfCurrentBooster();
@@ -133,18 +118,19 @@ public class BoosterShopScreen : MonoBehaviour
 		}
 		else
 		{
-			ShowConfirmBuyHCScreen();
+			ShowInsufficientShards();
 		}
 	}
 
 	private void HandleBackEvent(SimpleButton pButton)
 	{
+		if (!_isEnabled) return;
 		StartCoroutine(GotoPreviousScene());
 	}
 
 	private void Update()
 	{
-		if (_isEnabled && Input.GetKeyUp(KeyCode.Escape))
+		if (_isEnabled && Time.frameCount > inputEnabledFrame && Input.GetKeyUp(KeyCode.Escape))
 		{
 			StartCoroutine(GotoPreviousScene());
 		}
@@ -158,5 +144,12 @@ public class BoosterShopScreen : MonoBehaviour
 		fade.FadeOut();
 		yield return new WaitForSeconds(0.5f);
 		Application.LoadLevel(_previousScene);
+	}
+
+	private void OnDestroy()
+	{
+		_purchaseButton.ButtonUpEvent -= HandlePurchaseEvent;
+		_menuHeader.BackButton.ButtonUpEvent -= HandleBackEvent;
+		_alertScreen.EventYES -= HideInsufficientShards;
 	}
 }

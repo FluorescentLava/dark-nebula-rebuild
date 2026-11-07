@@ -36,7 +36,7 @@ PURCHASE HEADER=فتح الترقية
 PURCHASE=شراء
 CANCEL=إلغاء
 HC NEEDED=رصيدك من الجواهر لا يكفي
-HC NEEDED TEXT=يجب عليك شراء المزيد من الجواهر لاتمام العملية. هل ترغب بالذهاب الى المتجر؟
+HC NEEDED TEXT=لا توجد جواهر كافية لإتمام الشراء.
 
 # Booster In-game
 HC PICKUP=جوهرة

@@ -86,6 +86,7 @@ public class PauseScreen : SimpleScreen
 	private void Confirm(string stringID)
 	{
 		SetEnabled(false);
+		gameObject.SetActive(false);
 		confirmScreen.gameObject.SetActive(true);
 		confirmScreen.EventNO += onCloseConfirmScreen;
 		confirmScreen.SetTitle(stringID);
@@ -93,6 +94,7 @@ public class PauseScreen : SimpleScreen
 
 	private void onCloseConfirmScreen()
 	{
+		gameObject.SetActive(true);
 		SetEnabled(true);
 		confirmScreen.EventNO -= onCloseConfirmScreen;
 		confirmScreen.EventYES -= onMainMenu;

@@ -79,10 +79,10 @@ public class MenuContentFit : MonoBehaviour
             if(component!=null && (component.GetType().Name=="DynamicFont" || component.GetType().Name=="SimpleText"))return true;
         return false;
     }
-    Rect BoundsOnScreen()
+    Rect BoundsOnScreen(Transform root=null)
     {
         Vector2 min=new Vector2(float.PositiveInfinity,float.PositiveInfinity),max=new Vector2(float.NegativeInfinity,float.NegativeInfinity);
-        foreach(Renderer r in GetComponentsInChildren<Renderer>())
+        foreach(Renderer r in (root!=null?root:transform).GetComponentsInChildren<Renderer>())
         {
             if(!IsControl(r))continue;
             Bounds b=r.bounds;
@@ -123,8 +123,17 @@ public class MenuContentFit : MonoBehaviour
                 Vector3 p=positions[i];p.x*=factor;p.y*=factor;children[i].localPosition=p;
             }
             bounds=BoundsOnScreen();
-            float dx=bounds.xMin<safe.xMin?safe.xMin-bounds.xMin:bounds.xMax>safe.xMax?safe.xMax-bounds.xMax:0;
-            float dy=bounds.yMin<safe.yMin?safe.yMin-bounds.yMin:bounds.yMax>safe.yMax?safe.yMax-bounds.yMax:0;
+            var confirmation=GetComponent<ConfirmScreen>();
+            bool center=confirmation!=null && GetComponentInParent<Hud>()!=null;
+            if(center)
+            {
+                // Center the title bounds, including localized font offsets.
+                Rect title=BoundsOnScreen(confirmation.lblTitle.transform);
+                confirmation.lblTitle.transform.localPosition+=transform.InverseTransformVector(Camera.transform.right*(bounds.center.x-title.center.x)*(2f*Camera.orthographicSize/Camera.pixelHeight));
+                bounds=BoundsOnScreen();
+            }
+            float dx=center?safe.center.x-bounds.center.x:bounds.xMin<safe.xMin?safe.xMin-bounds.xMin:bounds.xMax>safe.xMax?safe.xMax-bounds.xMax:0;
+            float dy=center?safe.center.y-bounds.center.y:bounds.yMin<safe.yMin?safe.yMin-bounds.yMin:bounds.yMax>safe.yMax?safe.yMax-bounds.yMax:0;
             Vector3 offset=transform.InverseTransformVector((Camera.transform.right*dx+Camera.transform.up*dy)*(2f*Camera.orthographicSize/Camera.pixelHeight));
             foreach(Transform child in children)child.localPosition+=offset;
         }

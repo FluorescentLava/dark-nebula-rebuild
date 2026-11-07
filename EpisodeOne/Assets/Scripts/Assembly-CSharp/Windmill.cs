@@ -21,6 +21,7 @@ public class Windmill : Entity, IFreezable
 	private float rotationSpeed = 1f;
 
 	private float originalRotationSpeed = 1f;
+    private float rotationTimeOffset;
 
 	private bool _isActive = true;
 
@@ -39,7 +40,7 @@ public class Windmill : Entity, IFreezable
 		_z = base.transform.position.z;
 	}
 
-	private void OnDisable()
+	private void OnDestroy()
 	{
 		World.SignalDifficultyChanged -= SetDifficultyTo;
 	}
@@ -48,7 +49,7 @@ public class Windmill : Entity, IFreezable
 	{
 		if (_isActive)
 		{
-			_armsTransform.localRotation = Quaternion.AngleAxis(rotationSpeed * Time.time * 30f * -3.275f, Vector3.forward);
+            UpdateRotation();
 			if (World.IsFrozen(_z))
 			{
 				World.AddToFrozenObjects(this);
@@ -59,7 +60,9 @@ public class Windmill : Entity, IFreezable
 
 	private void SetDifficultyTo(float delta)
 	{
-		rotationSpeed = originalRotationSpeed * delta;
+        float nextSpeed = originalRotationSpeed * delta;
+        rotationTimeOffset += Time.time * (rotationSpeed - nextSpeed);
+        rotationSpeed = nextSpeed;
 	}
 
 	private void OnTriggerStay(Collider other)
@@ -108,5 +111,11 @@ public class Windmill : Entity, IFreezable
 	public void Defrost()
 	{
 		_isActive = true;
+        UpdateRotation();
 	}
+
+    private void UpdateRotation()
+    {
+        _armsTransform.localRotation = Quaternion.AngleAxis((rotationSpeed * Time.time + rotationTimeOffset) * 30f * -3.275f, Vector3.forward);
+    }
 }

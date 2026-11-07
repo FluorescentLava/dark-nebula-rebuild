@@ -74,12 +74,21 @@ public class World : MonoBehaviour
 	private static List<SuperLifeOrb> _hcOrbs = new List<SuperLifeOrb>();
 
 	private bool _startedFadeIn;
+    private static Camera visibleCamera;
+    public static float VisibleHalfHeight
+    {
+        get
+        {
+            if (visibleCamera == null && cameraFollow != null) visibleCamera = cameraFollow.GetComponent<Camera>();
+            return visibleCamera != null ? visibleCamera.orthographicSize : Constants.VirtualScreenHeightHalf;
+        }
+    }
 
 	public static float DefrostZ
 	{
 		get
 		{
-			return cameraFollow.windowPosZ + (float)Constants.VirtualScreenHeight + 500f;
+            return cameraFollow.transform.position.z + VisibleHalfHeight + 500f;
 		}
 	}
 
@@ -87,7 +96,7 @@ public class World : MonoBehaviour
 	{
 		get
 		{
-			return cameraFollow.windowPosZ + (float)Constants.VirtualScreenHeight + 600f;
+            return cameraFollow.transform.position.z + VisibleHalfHeight + 600f;
 		}
 	}
 
@@ -95,7 +104,7 @@ public class World : MonoBehaviour
 	{
 		get
 		{
-			return cameraFollow.windowPosZ - 600f;
+            return cameraFollow.transform.position.z - VisibleHalfHeight - 600f;
 		}
 	}
 
@@ -129,6 +138,7 @@ public class World : MonoBehaviour
 	{
 		vessel = null;
 		cameraFollow = null;
+        visibleCamera = null;
 		hud = null;
 		skillMeter = null;
 		_world = null;
@@ -398,7 +408,7 @@ public class World : MonoBehaviour
 
 	public static bool IsAboutToShowOnScreen(float z, float height)
 	{
-		return z - height < cameraFollow.windowPosZ + (float)Constants.VirtualScreenHeight + 60f;
+        return z - height < cameraFollow.transform.position.z + VisibleHalfHeight + 60f;
 	}
 
 	public static void SetDifficultyTo(float d)

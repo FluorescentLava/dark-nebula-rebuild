@@ -16,7 +16,7 @@ public sealed class PlayerNameInput : MonoBehaviour
         var root = new GameObject("Leaderboard name");
         root.layer = parent.gameObject.layer;
         root.transform.SetParent(parent, false);
-        root.transform.localPosition = new Vector3(0f, -134f, -40f);
+        root.transform.localPosition = new Vector3(0f, -158f, -40f);
         var input = root.AddComponent<PlayerNameInput>();
         tk2dSprite.AddComponent(root, collection, collection.GetSpriteIdByName("InputField"));
         input.button = root.AddComponent<SimpleButton>();
@@ -45,7 +45,7 @@ public sealed class PlayerNameInput : MonoBehaviour
         title.name = "Nickname title";
         title.FontColor = 1;
         title.SelectedEntry = 4;
-        title.SetOriginalPos(new Vector3(0f, 26f, -1f));
+        title.SetOriginalPos(new Vector3(0f, 23f, -1f));
         title.Text = "LEADERBOARD NAME";
         LegacyControlTextLayout.Bind(input.label, root.GetComponent<Renderer>());
         return input;

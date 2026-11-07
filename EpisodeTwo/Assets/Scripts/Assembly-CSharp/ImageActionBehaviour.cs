@@ -58,6 +58,12 @@ public class ImageActionBehaviour : MonoBehaviour
 				{
 					texts[i].transform.position = texts[0].transform.position + new Vector3(0f, i * -20 - 20, 0f);
 				}
+				if (GamePreferences.Chinese)
+				{
+					texts[1].SetStringID("CALIBRATE.INSTRUCTIONS.ANGLE");
+					texts[1].transform.position = texts[0].transform.position + new Vector3(0f, -48f, 0f);
+					for (int i = 2; i < 6; i++) texts[i].gameObject.SetActive(false);
+				}
 			}
 			break;
 		default:
@@ -67,6 +73,8 @@ public class ImageActionBehaviour : MonoBehaviour
 			break;
 		}
 		base.gameObject.SetActive(true);
+        // Timed tutorial actions must finish before navigation can change HUD state.
+        SceneTransitionInput.SuppressFor(duration + .7f);
 		isFading = false;
 		_fade.FadeIn();
 		Hud.ImageActionRunning = true;

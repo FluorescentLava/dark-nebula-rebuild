@@ -103,7 +103,7 @@
     {
       "key": "COLLECT ALL HINT",
       "en": "Collect all to avoid time penalty",
-      "zh": "收集全部能量球，避免时间惩罚"
+      "zh": "收集全部能量球\n避免时间惩罚"
     },
     {
       "key": "QUIT?",
@@ -148,7 +148,7 @@
     {
       "key": "CALIBRATE TEXT",
       "en": "Hold the device in the desired playing position and press the calibrate button.\n\nyou can recalibrate at any time during the game By pressing the screen with two fingers.",
-      "zh": "以舒适的姿势握住设备，点击校准。\n\n游戏中可随时双指触屏重新校准。"
+      "zh": "以舒适的游玩姿势握住设备\n然后点击校准按钮\n\n游戏中可随时重新校准\n只需用两根手指同时触碰屏幕"
     },
     {
       "key": "VIBRATION",
@@ -748,7 +748,7 @@
     {
       "key": "BOOSTER SELECTION SUBTIBLE",
       "en": "All upgrades are available.\nTurn them on or off for this level.\n\nLeave all off to play with the original rules.",
-      "zh": "可自由开启或关闭本关升级。\n\n全部关闭即可按原版规则游玩。"
+      "zh": "可自由开启或关闭本关升级。\n全部关闭即可按原版规则游玩。"
     },
     {
       "key": "SPEED",
@@ -1128,12 +1128,12 @@
     {
       "key": "VIEW YOUR BEST TIMES IN LEADERBOARDS.",
       "en": "VIEW YOUR BEST TIMES IN LEADERBOARDS.",
-      "zh": "在排行榜中查看你的最佳用时。"
+      "zh": "在排行榜中\n查看你的最佳用时"
     },
     {
       "key": "LOADING.HINT.CALIBRATE",
       "en": "You can recalibrate at any time during the game by pressing the screen with two fingers.",
-      "zh": "游戏中可随时双指触屏重新校准。"
+      "zh": "游戏中可随时重新校准\n只需用两根手指同时触碰屏幕"
     },
     {
       "key": "LEVEL 21",
@@ -1214,6 +1214,16 @@
       "key": "BUY",
       "en": "Buy",
       "zh": "购买"
+    },
+    {
+      "key": "CALIBRATE.INSTRUCTIONS.POSITION",
+      "en": "Hold the device in the desired playing position\nand press the calibrate button.",
+      "zh": "以舒适的游玩姿势握住设备\n然后点击校准按钮"
+    },
+    {
+      "key": "CALIBRATE.INSTRUCTIONS.ANGLE",
+      "en": "If you want to play at a different angle, select\nCalibrate Controls from the options menu.",
+      "zh": "若要改变设备的握持角度\n请在设置菜单中选择校准控制"
     }
   ]
 }

@@ -38,6 +38,7 @@ public class TextMessage : Entity
 		base.transform.localPosition = new Vector3(0f, (float)Constants.VirtualScreenHeight * 0.25f, 0f);
 		_textMesh.transform.localScale = _originalCharScale;
 		_textMesh.Text = message;
+        _textMesh.EnableMessageGradient();
 		if (red)
 		{
 			GfxFlare.Play("TextFlareRed");

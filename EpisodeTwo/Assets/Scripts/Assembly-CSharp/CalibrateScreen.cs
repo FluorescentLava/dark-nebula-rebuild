@@ -13,8 +13,11 @@ public class CalibrateScreen : MonoBehaviour
 	private SimpleText _titleText;
 
 	private float _triggerGoBackAtTime;
+    private bool closing;
+    private float openedAt;
 	private readonly Transform[] _instructionLines = new Transform[8];
 	private readonly Vector3[] _instructionPositions = new Vector3[8];
+    private readonly string[] _instructionIDs = new string[8];
 
 	public event HandlerDelegate EventGoBack;
 
@@ -23,17 +26,19 @@ public class CalibrateScreen : MonoBehaviour
 		SimpleText[] componentsInChildren = GetComponentsInChildren<SimpleText>();
 		foreach (SimpleText simpleText in componentsInChildren)
 		{
-			simpleText.UseCurrentTextAsStringID();
 			for (int i = 0; i < _instructionLines.Length; i++)
 			{
 				if (simpleText.name != "Text" + i) continue;
 				_instructionLines[i] = simpleText.transform;
 				_instructionPositions[i] = simpleText.transform.localPosition;
+                _instructionIDs[i] = simpleText.GetComponent<tk2dTextMesh>().text;
 			}
+			simpleText.UseCurrentTextAsStringID();
 		}
 		RefreshInstructionLayout();
 		ButtonCalibrate.GetComponent<SimpleButton>().ButtonUpEvent += delegate
 		{
+            if (closing || _triggerGoBackAtTime != 0f) return;
 			UserSettings.I.Calibrate();
 			SimpleText[] componentsInChildren2 = GetComponentsInChildren<SimpleText>();
 			foreach (SimpleText simpleText2 in componentsInChildren2)
@@ -55,8 +60,9 @@ public class CalibrateScreen : MonoBehaviour
 
 	private void OnEnable()
 	{
+        closing = false;
+        openedAt = Time.realtimeSinceStartup;
 		GamePreferences.Changed += RefreshInstructionLayout;
-		RefreshInstructionLayout();
 		_triggerGoBackAtTime = 0f;
 		// The previous calibration leaves both button hierarchies inactive.
 		// Restore their text renderers as well as the currently active labels.
@@ -71,6 +77,7 @@ public class CalibrateScreen : MonoBehaviour
 		}
 		ButtonGoBack.SetActive(true);
 		ButtonCalibrate.SetActive(true);
+        RefreshInstructionLayout();
 	}
 
 	private void OnDisable()
@@ -85,15 +92,24 @@ public class CalibrateScreen : MonoBehaviour
 		{
 			if (_instructionLines[i] == null) continue;
 			Vector3 position = _instructionPositions[i];
-			if (GamePreferences.Chinese)
-				position.y = _instructionPositions[0].y - i * 22f - (i >= 4 ? 12f : 0f);
+            bool visible = !GamePreferences.Chinese || i == 0 || i == 4;
+            _instructionLines[i].gameObject.SetActive(visible);
+            if (GamePreferences.Chinese && visible)
+            {
+                position.y = i == 0 ? 116f : 42f;
+                _instructionLines[i].GetComponent<SimpleText>().SetStringID(i == 0 ? "CALIBRATE.INSTRUCTIONS.POSITION" : "LOADING.HINT.CALIBRATE");
+            }
+            else if (!GamePreferences.Chinese) _instructionLines[i].GetComponent<SimpleText>().SetStringID(_instructionIDs[i]);
 			_instructionLines[i].localPosition = position;
 		}
 	}
 
 	private void OnGoBack()
 	{
+        if (closing) return;
+        closing = true;
 		_triggerGoBackAtTime = 0f;
+        SceneTransitionInput.SuppressFor(.7f);
 		if (EventGoBack != null)
 		{
 			EventGoBack();
@@ -102,7 +118,7 @@ public class CalibrateScreen : MonoBehaviour
 
 	public virtual void Update()
 	{
-		if (Input.GetKeyUp(KeyCode.Escape))
+		if (!closing && _triggerGoBackAtTime == 0f && Time.realtimeSinceStartup > openedAt + .2f && Input.GetKeyUp(KeyCode.Escape))
 		{
 			OnGoBack();
 		}

@@ -58,6 +58,45 @@ public class DynamicFont : MonoBehaviour
 
 	public string OriginalText = string.Empty;
 
+    private bool messageGradient;
+    private Material messageMaterial;
+
+    public void EnableMessageGradient()
+    {
+        if (!messageGradient) Font.textureRebuilt += RefreshMessageTexture;
+        messageGradient = true;
+        FontColor = 0;
+        Refresh();
+    }
+
+    private void RefreshMessageTexture(Font font)
+    {
+        if (messageMaterial != null && GetTextMesh().font == font)
+            messageMaterial.mainTexture = font.material.mainTexture;
+    }
+
+    private void ApplyMessageGradient()
+    {
+        if (!messageGradient) return;
+        if (messageMaterial == null)
+        {
+            messageMaterial = new Material(CjkFontAtlas.MaterialFor("FontSmall_Tonaddata"));
+            messageMaterial.name = "HUD message gradient and shadow";
+            messageMaterial.SetFloat("_UseLocalHeight", 1f);
+        }
+        float low, high;
+        LocalInkY(GetTextMesh(), out low, out high);
+        messageMaterial.SetVector("_GlyphYBounds", new Vector4(low, high, 0f, 0f));
+        messageMaterial.mainTexture = GetTextMesh().font.material.mainTexture;
+        GetComponent<Renderer>().sharedMaterial = messageMaterial;
+    }
+
+    private void OnDestroy()
+    {
+        Font.textureRebuilt -= RefreshMessageTexture;
+        if (messageMaterial != null) Destroy(messageMaterial);
+    }
+
 	private string _currentText = string.Empty;
 
     public bool IsLiteralText { get; private set; }
@@ -196,6 +235,7 @@ public class DynamicFont : MonoBehaviour
 		}
 		RefreshTextMesh(GetTextMesh(), Settings.Entries[SelectedEntry], _scale);
         AlignGlyphAnchor(GetTextMesh());
+        ApplyMessageGradient();
 		if (FontRefreshed != null)
 		{
 			FontRefreshed();

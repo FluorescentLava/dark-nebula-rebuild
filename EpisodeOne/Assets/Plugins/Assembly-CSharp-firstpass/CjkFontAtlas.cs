@@ -133,6 +133,7 @@ public static class CjkFontAtlas
         material.SetFloat("_UseGradient", gradient != null ? 1f : 0f);
         material.SetFloat("_GradientCount", Mathf.Max(1, gradientCount));
         material.SetFloat("_GradientIndex", gradientIndex);
+        material.SetFloat("_MessageStyle", style == "FontSmall_Tonaddata" ? 1f : 0f);
         materials[key] = material; return material;
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

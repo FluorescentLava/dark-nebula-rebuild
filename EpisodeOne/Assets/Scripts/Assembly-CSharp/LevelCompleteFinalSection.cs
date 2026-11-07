@@ -19,6 +19,7 @@ public class LevelCompleteFinalSection : LevelCompleteSection
 
 	public override void Start()
 	{
+        _nextStarText.FontRefreshed += AlignNextStarIcon;
 		_nextStarIcon.gameObject.SetActive(false);
 		_nextStarText.gameObject.SetActive(false);
 		_star.transform.localScale = new Vector3(3f, 3f, 3f);
@@ -59,6 +60,23 @@ public class LevelCompleteFinalSection : LevelCompleteSection
 		float timeToNextStar = LevelCompleteScreen.GetTimeToNextStar(LevelCompleteScreen.Result.CompletionTime, LevelCompleteScreen.Result.LevelNum, LevelCompleteScreen.Result.Expert);
 		_nextStarText.Text = "TIME TO NEXT".Localize(LevelCompleteSection.ToTimeString(timeToNextStar));
 	}
+
+    private void AlignNextStarIcon()
+    {
+        // Keep the target rating on the same row as its time, leaving the
+        // nickname title and field their own space below the result.
+        Renderer text = _nextStarText.GetComponent<Renderer>();
+        Renderer icon = _nextStarIcon.GetComponent<Renderer>();
+        Vector3 position = _nextStarIcon.transform.position;
+        position.x = text.bounds.max.x + icon.bounds.extents.x + 6f;
+        position.y = _nextStarText.InkCenterWorldY;
+        _nextStarIcon.transform.position = position;
+    }
+
+    private void OnDestroy()
+    {
+        if (_nextStarText != null) _nextStarText.FontRefreshed -= AlignNextStarIcon;
+    }
 
 	private void ShowStar()
 	{

@@ -62,6 +62,7 @@ public class LoadLevelScreen : MonoBehaviour
 		GC.Collect();
 		UserSettings.Instance.SetLastSelectedLevel(LevelToLoad, UserSettings.Instance.IsExpertMode);
 		levelName.Text = GetLevelName(LevelToLoad);
+        ConfigureLoadingText();
         foreach(DynamicFont label in helpGroup.GetComponentsInChildren<DynamicFont>(true))
             if(label.Text!=null && label.Text.ToUpperInvariant().Contains("PALRINGO"))label.Text="VIEW YOUR BEST TIMES IN LEADERBOARDS.";
 		if (LevelToLoad == 1)
@@ -94,6 +95,38 @@ public class LoadLevelScreen : MonoBehaviour
 	{
 		StartCoroutine("Load");
 	}
+
+    private void ConfigureLoadingText()
+    {
+        // These bars were authored for Latin baselines. Center the visible ink
+        // on their artwork and keep the Chinese sentence breaks intact.
+        foreach (DynamicFont label in helpGroup.GetComponentsInChildren<DynamicFont>(true))
+        {
+            Renderer art = null;
+            if (label.name == "InstructionsTitle") art = helpGroup.transform.Find("Thin Line").GetComponent<Renderer>();
+            else if (label.name == "Instructions") art = helpGroup.transform.Find("Thick Line").GetComponent<Renderer>();
+            else if (label.OriginalText == "COLLECT ALL HINT")
+            {
+                label.Anchor = TextAnchor.MiddleCenter;
+                label.Alignment = TextAlignment.Center;
+                label.SetOriginalPos(new Vector3(18f, 0f, label.transform.localPosition.z));
+                art = label.transform.parent.Find("Button").GetComponent<Renderer>();
+            }
+            if (art == null) continue;
+            label.Anchor = TextAnchor.MiddleCenter;
+            if (GamePreferences.Chinese) label.Wrapping = DynamicFont.WrapType.NONE;
+            LegacyControlTextLayout.Bind(label, art);
+            label.Refresh();
+        }
+        foreach (DynamicFont label in new[] { levelName, transform.Find("LoadingText").GetComponent<DynamicFont>() })
+        {
+            label.SetOriginalPos();
+            Vector3 position = label.transform.localPosition;
+            position.y -= 5f;
+            label.SetOriginalPos(position);
+            label.Refresh();
+        }
+    }
 
 	private void OnClickedTryAgain()
 	{

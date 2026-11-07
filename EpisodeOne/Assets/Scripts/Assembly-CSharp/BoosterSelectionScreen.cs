@@ -32,6 +32,21 @@ public class BoosterSelectionScreen : MonoBehaviour
 		_startButton.Text = "PLAY".Localize();
 		_menuHeader.SetTitleID("BOOSTER HEADER", true);
 		_menuHeader.UpdateCurrentLevel();
+        if (GamePreferences.Chinese)
+        {
+            foreach (DynamicFont label in GetComponentsInChildren<DynamicFont>(true))
+            {
+                if (label.OriginalText != "BOOSTER SELECTION" && label.OriginalText != "BOOSTER SELECTION SUBTIBLE") continue;
+                label.Anchor = TextAnchor.MiddleCenter;
+                label.Alignment = TextAlignment.Center;
+                label.Wrapping = DynamicFont.WrapType.NONE;
+                label.SetOriginalPos();
+                Vector3 position = label.transform.localPosition;
+                position.y = label.OriginalText == "BOOSTER SELECTION" ? 160f : 110f;
+                label.SetOriginalPos(position);
+                label.Refresh();
+            }
+        }
 		_isEnabled = true;
 		Time.timeScale = 1f;
 		fade = base.gameObject.AddComponent<CameraFade>();

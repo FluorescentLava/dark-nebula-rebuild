@@ -14,6 +14,8 @@ public class CalibrateScreen : MonoBehaviour
 	public DynamicFont Text;
 
 	private float _triggerGoBackAtTime;
+    private bool closing;
+    private float openedAt;
 
 	public event HandlerDelegate EventGoBack;
 
@@ -24,6 +26,7 @@ public class CalibrateScreen : MonoBehaviour
 		ButtonCalibrate.Text = "CALIBRATE CONTROLS".Localize();
 		ButtonCalibrate.ButtonUpEvent += delegate
 		{
+            if (closing || _triggerGoBackAtTime != 0f) return;
 			UserSettings.Instance.Calibrate();
 			Text.GetComponent<Renderer>().enabled = false;
 			TitleText.Text = "CALIBRATED!".Localize();
@@ -40,6 +43,8 @@ public class CalibrateScreen : MonoBehaviour
 
 	public void Show()
 	{
+        closing = false;
+        openedAt = Time.realtimeSinceStartup;
 		_triggerGoBackAtTime = 0f;
 		Text.GetComponent<Renderer>().enabled = true;
 		TitleText.Text = "CALIBRATE".Localize();
@@ -49,6 +54,10 @@ public class CalibrateScreen : MonoBehaviour
 
 	private void OnGoBack()
 	{
+        if (closing) return;
+        closing = true;
+        _triggerGoBackAtTime = 0f;
+        SceneTransitionInput.SuppressFor(.7f);
 		if (EventGoBack != null)
 		{
 			EventGoBack();
@@ -57,7 +66,7 @@ public class CalibrateScreen : MonoBehaviour
 
 	public virtual void Update()
 	{
-		if (Input.GetKeyUp(KeyCode.Escape))
+		if (!closing && _triggerGoBackAtTime == 0f && Time.realtimeSinceStartup > openedAt + .2f && Input.GetKeyUp(KeyCode.Escape))
 		{
 			OnGoBack();
 		}

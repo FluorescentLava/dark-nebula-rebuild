@@ -85,6 +85,7 @@ public class LoadLevelScreen : MonoBehaviour
 			text = text + "\n" + Language.Get("AT ANY TIME DURING THE GAME");
 			text = text + "\n" + Language.Get("BY PRESSING THE SCREEN");
 			text = text + "\n" + Language.Get("WITH TWO FINGERS.");
+			if (GamePreferences.Chinese) text = Language.Get("LOADING.HINT.CALIBRATE");
 			LoadingTip.SetText(text);
 		}
 		else if (DarkNebulaStore.HasRemovedAds())

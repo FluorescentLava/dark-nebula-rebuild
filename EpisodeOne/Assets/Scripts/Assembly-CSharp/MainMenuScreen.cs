@@ -245,6 +245,8 @@ public class MainMenuScreen : MonoBehaviour
 
 	private void onLaunchCalibrate()
 	{
+        _optionScreen.SetEnabled(false);
+        SceneTransitionInput.SuppressFor(.7f);
 		fade.FadeOut();
 		Invoke("onShowCalibrate", 0.5f);
 	}
@@ -268,6 +270,7 @@ public class MainMenuScreen : MonoBehaviour
 		_calibrateScreen.gameObject.SetActive(false);
 		fade.FadeIn();
 		_optionScreen.gameObject.SetActive(true);
+        _optionScreen.SetEnabled(true);
 	}
 
 	private void onLeaderboards(SimpleButton source)

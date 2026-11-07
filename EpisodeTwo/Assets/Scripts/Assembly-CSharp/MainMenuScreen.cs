@@ -254,6 +254,8 @@ public class MainMenuScreen : MonoBehaviour
 
 	private void onLaunchCalibrate()
 	{
+        _optionScreen.SetEnabled(false);
+        SceneTransitionInput.SuppressFor(.7f);
 		fade.FadeOut();
 		Invoke("onShowCalibrate", 0.5f);
 	}

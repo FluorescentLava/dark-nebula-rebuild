@@ -33,10 +33,16 @@ public sealed class SceneTransitionInput : MonoBehaviour
     }
 
     public static void Hold() { loading = blocking = true; }
+    public static void SuppressFor(float seconds)
+    {
+        blocking = true;
+        releaseAfter = Mathf.Max(releaseAfter, Time.realtimeSinceStartup + seconds);
+        Input.ResetInputAxes();
+    }
     public static void Complete()
     {
         loading = false;
-        releaseAfter = Time.realtimeSinceStartup + .2f;
+        releaseAfter = Mathf.Max(releaseAfter, Time.realtimeSinceStartup + .2f);
     }
 
     void OnEnable() { SceneManager.sceneLoaded += SceneLoaded; }
@@ -51,7 +57,7 @@ public sealed class SceneTransitionInput : MonoBehaviour
     {
         if (!blocking) return;
         bool held = Input.GetKey(KeyCode.Escape) || Input.GetKey(KeyCode.Menu) || Input.GetMouseButton(0) || Input.touchCount > 0;
-        if (held) releaseAfter = Time.realtimeSinceStartup + .2f;
+        if (held) releaseAfter = Mathf.Max(releaseAfter, Time.realtimeSinceStartup + .2f);
         // Legacy input is shared by all recovered controls. Consume it before their Updates.
         Input.ResetInputAxes();
         if (loading || held || Time.realtimeSinceStartup < releaseAfter) return;

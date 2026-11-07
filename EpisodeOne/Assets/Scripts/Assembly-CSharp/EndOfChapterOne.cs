@@ -34,6 +34,7 @@ public class EndOfChapterOne : MonoBehaviour
 
 	private IEnumerator LoadLevel(string levelName)
 	{
+        if (!SceneTransitionInput.TryBegin()) yield break;
 		fade.FadeOut();
 		yield return new WaitForSeconds(0.5f);
 		Application.LoadLevel(levelName);

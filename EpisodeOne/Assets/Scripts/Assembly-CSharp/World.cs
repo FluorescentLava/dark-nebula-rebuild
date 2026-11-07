@@ -294,6 +294,7 @@ public class World : MonoBehaviour
 
 	private void OnFadeInComplete()
 	{
+        SceneTransitionInput.Complete();
 		SpawnHardCurrency();
 		fade.FadeComplete -= OnFadeInComplete;
 		fade.enabled = false;
@@ -314,6 +315,7 @@ public class World : MonoBehaviour
 
 	public static void LoadLevel(string levelName, float fadeTime)
 	{
+        if (!SceneTransitionInput.TryBegin()) return;
 		_hcOrbs.Clear();
 		if (fade == null)
 		{

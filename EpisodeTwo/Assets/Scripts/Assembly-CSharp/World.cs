@@ -472,6 +472,7 @@ public class World : MonoBehaviour
 
 	private void OnFadeInComplete()
 	{
+        SceneTransitionInput.Complete();
         ShardWallet.SpawnInLevel();
 		fade.FadeComplete -= OnFadeInComplete;
 		fade.enabled = false;
@@ -525,6 +526,7 @@ public class World : MonoBehaviour
 
 	public static void LoadLevel(string levelName, float fadeTime)
 	{
+        if (!SceneTransitionInput.TryBegin()) return;
 		fade = _world.gameObject.AddComponent<CameraFade>();
 		fade.SetScreenOverlayColor(new Color(0f, 0f, 0f, 0f));
 		if (fade == null)

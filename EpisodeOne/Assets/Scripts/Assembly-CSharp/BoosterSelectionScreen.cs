@@ -76,6 +76,7 @@ public class BoosterSelectionScreen : MonoBehaviour
 
 	private IEnumerator LoadScene(string levelName)
 	{
+        if (!SceneTransitionInput.TryBegin()) yield break;
 		_menuHeader.BackButton.ButtonUpEvent -= HandleButtonUpEvent;
 		_startButton.ButtonUpEvent -= HandleButtonUpEvent;
 		_isEnabled = false;

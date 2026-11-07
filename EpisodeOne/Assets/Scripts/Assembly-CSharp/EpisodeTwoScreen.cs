@@ -46,6 +46,7 @@ public class EpisodeTwoScreen : MonoBehaviour
 
 	private IEnumerator LoadLevel(string levelName)
 	{
+        if (!SceneTransitionInput.TryBegin()) yield break;
 		fade.FadeOut();
 		yield return new WaitForSeconds(1f);
 		Application.LoadLevel(levelName);

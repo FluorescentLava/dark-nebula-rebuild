@@ -50,6 +50,8 @@ public class LoadLevelScreen : MonoBehaviour
 
 	private float lastBarChange;
 
+    private void Awake() { SceneTransitionInput.Hold(); }
+
 	private void Start()
 	{
         calibration = StartCoroutine(LevelMotionCalibration.Calibrate(q => UserSettings.I.centerCalibration = q));

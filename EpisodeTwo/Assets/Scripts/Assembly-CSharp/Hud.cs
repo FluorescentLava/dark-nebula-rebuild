@@ -318,6 +318,7 @@ public class Hud : MonoBehaviour
 
 	private void Pause(bool cancelHaptics)
 	{
+        if (cancelHaptics && SceneTransitionInput.Blocking) return;
 		if (cancelHaptics) GameHaptics.Cancel();
 		Time.timeScale = 0f;
 		state = State.Pause;

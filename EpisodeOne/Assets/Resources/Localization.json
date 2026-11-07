@@ -61,6 +61,11 @@
       "zh": "开始关卡"
     },
     {
+      "key": "UNLOCK",
+      "en": "Unlock",
+      "zh": "解锁"
+    },
+    {
       "key": "UNLOCK LEVEL",
       "en": "Unlock level",
       "zh": "解锁关卡"

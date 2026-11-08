@@ -4,7 +4,7 @@
 
 A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for modern mobile devices, combining content recovered from the iOS and Android releases.
 
-## Features (0.4.0-Beta)
+## Features
 
 ### Core features
 
@@ -30,34 +30,6 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 - [x] Enhanced vibration with decaying multi-pulse jump-pad feedback, light ordinary-pickup and medium shard/1UP feedback, and 650 ms death feedback protected from weaker events.
 - [x] Background sensor calibration before each level starts.
 - [x] WASD controls for Windows Unity debugging, excluded from Release builds.
-
-## 0.4.0-Beta update
-
-Episode One’s Episode Two button opens the installed app on Android and iOS, or opens this repository’s [Releases page](https://github.com/FluorescentLava/dark-nebula-rebuild/releases) when it cannot launch Episode Two. The iOS app registers its launch URL scheme. Both iOS exports now assign each episode’s original artwork to every supported application-icon slot, including iPhone, iPad and the App Store icon.
-
-Both iOS apps hide the status bar. Episode Two disables and dims Continue when there is no level progress, including after the first intro and after returning from settings. New Game starts the first level directly without replaying the intro; existing progress still requires confirmation before it is reset.
-
-Enhanced score feedback now follows the actual number animations in both episodes. Short pulses continue while counting, stop when counting ends or is skipped, and preserve higher-priority star feedback. iOS uses light native impacts for these score pulses.
-
-## 0.3.7 update
-
-Episode One's leaderboard retains its portraits and reuses Episode Two's time, date, English header font and star artwork, matching their sizes, colors and placement. Text anchors now use precise font metrics and visible glyph bounds across both languages, replacing the separate nickname offset correction. The completion screen now accepts and saves a nickname before adding that run to the local Top 10. A new local achievements browser shows all fourteen original gold-star milestones, badges and unlock progress in English and Simplified Chinese.
-
-Episode One's settings and preparation screens now open the same vessel page and controller, combining the original swipe preview, shard artwork, purchases and equipment, including while paused. Its original shard balance panel follows the page layout. Episode Two displays its shard icon and balance without that panel at the upper left of the page's content, moving with the other controls instead of the screen edge. Shard pickups display a complete reward sentence. Episode One restores the message scale before aligning its text on both the first use and subsequent reuse; both episodes release expired messages exactly once so repeated pickups keep displaying correctly.
-
-Episode Two's leaderboard now shares Episode One's original portraits and automatically shrinks long nicknames to fit beside the time. Complete Latin, Chinese and mixed names remain visible, and short names recover their normal size when rows are reused. Copied menu buttons retain their input hit areas, and remaining-life substitutions work in English. The temple transition restores the earlier upper canopy padding and forest-cap blend while retaining the current lower scenery patches and native camera motion. Enhanced Android vibration explicitly declares game usage, so short pickup effects are no longer misclassified as system touch feedback.
-
-Both episodes reuse their main-menu settings logic in game, with translucent black backgrounds for pause, settings, calibration and confirmation screens. Calibration keeps a large heading and normal body text. Loading and timed angle tutorials consume back keys and edge gestures until their transitions complete. Pages sharing menu artwork now match its size, position, edge fades and black borders. Result nicknames fade in with the final scoring stage, leaderboard pages show large headings, and rating hints no longer overlap the nickname field. Chinese HUD messages share the English gradient and lower-left shadow without clipping. Episode One also fixes tall-screen mechanism wake and speed-change discontinuities.
-
-Episode One restores its original loading-hint layout: all five illustrations appear on the left, with left-aligned text in the original column on the right. Legacy online-service copy now describes local features: the achievements hint directs players to all fourteen milestones and their unlock progress in Achievements; the others explain automatic saving, shard-based vessel unlocks, local leaderboards and two-finger calibration. The layout remains consistent across language changes and repeated hints. Upgrade badges now translate “UNLOCK” into Chinese and center its visible glyphs on the badge.
-
-## 0.3.6 update
-
-Episode Two's moving and rotating mechanisms now keep their position when checkpoint difficulty changes, fixing spikes that jumped back along their path while visible on tall screens. Sleeping sine obstacles restore their update and physics state correctly. Music imports are validated before Android packaging, portal scenery uses two small masked crops attached to the native terrain, and shockwave scans complete outside the tall viewport.
-
-The iOS packages are unsigned and require an Apple-issued signing certificate and provisioning profile before installation on a regular iPhone or iPad.
-
-iOS release filenames use `DarkNebula-Episode1-<version>-iOS.ipa` and `DarkNebula-Episode2-<version>-iOS.ipa`, without an `unsigned` suffix. Signing status is described in the release notes.
 
 ## Build from source
 

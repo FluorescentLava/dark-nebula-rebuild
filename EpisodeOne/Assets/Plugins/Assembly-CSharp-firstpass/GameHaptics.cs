@@ -21,15 +21,13 @@ public static class GameHaptics
         }
     }
 
-    // Motors without amplitude control need time to start. Their shorter echoes
-    // convey decay through pulse duration instead of unsupported amplitude values.
+    // Motors without amplitude control need a longer fallback pulse to start.
     static readonly Pattern pickup = new Pattern(20,
         new long[] { 0, 18 }, new int[] { 0, 95 }, new long[] { 0, 32 });
     static readonly Pattern criticalPickup = new Pattern(40,
         new long[] { 0, 45 }, new int[] { 0, 180 }, new long[] { 0, 55 });
     static readonly Pattern spring = new Pattern(50,
-        new long[] { 0, 32, 24, 22, 30, 15 }, new int[] { 0, 230, 0, 145, 0, 80 },
-        new long[] { 0, 42, 28, 28, 34, 20 });
+        new long[] { 0, 45 }, new int[] { 0, 180 }, new long[] { 0, 55 });
     static readonly Pattern spawn = new Pattern(30,
         new long[] { 0, 25, 40, 40 }, new int[] { 0, 100, 0, 160 },
         new long[] { 0, 35, 45, 45 });

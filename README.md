@@ -31,7 +31,8 @@ The current verification and regression work is complete. All currently identifi
 - [x] Chinese nickname input and leaderboard display with matching sans-serif fonts.
 - [x] High-quality audio decoding and positional stereo effects.
 - [x] Vibration modes: disabled, original and enhanced; enhanced by default.
-- [x] Enhanced vibration with medium jump-pad feedback, light ordinary-pickup and medium shard/1UP feedback, and 650 ms death feedback protected from weaker events.
+- [x] Enhanced vibration with two medium jump-pad pulses, light ordinary-pickup and moving-platform feedback, medium shard/1UP feedback, and 650 ms death feedback protected from weaker events.
+- [x] Distinct light counting ticks, medium star awards and heavy final-star feedback on Android and iOS.
 - [x] Background sensor calibration before each level starts.
 - [x] Manual calibration keeps the completion screen open until the player chooses Go Back.
 - [x] WASD controls for Windows Unity debugging, excluded from Release builds.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Append new events so existing serialized/numeric callers keep their values.
-public enum HapticEvent { Damage, Jump, Pickup, Spawn, Finish, Score, Star, CriticalPickup, Death, Spring, FinalStar, MechanismHit, MechanismDestroyed }
+public enum HapticEvent { Damage, Jump, Pickup, Spawn, Finish, Score, Star, CriticalPickup, Death, Spring, FinalStar, MechanismHit, MechanismDestroyed, PlatformMove }
 
 public static class GameHaptics
 {
@@ -27,21 +27,24 @@ public static class GameHaptics
     static readonly Pattern criticalPickup = new Pattern(40,
         new long[] { 0, 45 }, new int[] { 0, 180 }, new long[] { 0, 55 });
     static readonly Pattern spring = new Pattern(50,
-        new long[] { 0, 45 }, new int[] { 0, 180 }, new long[] { 0, 55 });
+        new long[] { 0, 45, 40, 45 }, new int[] { 0, 180, 0, 180 },
+        new long[] { 0, 55, 40, 55 });
+    static readonly Pattern platformMove = new Pattern(15,
+        new long[] { 0, 18 }, new int[] { 0, 95 }, new long[] { 0, 32 });
     static readonly Pattern spawn = new Pattern(30,
         new long[] { 0, 25, 40, 40 }, new int[] { 0, 100, 0, 160 },
         new long[] { 0, 35, 45, 45 });
     static readonly Pattern finish = new Pattern(70,
         new long[] { 0, 40, 55, 65 }, new int[] { 0, 160, 0, 230 },
         new long[] { 0, 45, 55, 80 });
-    // Adjacent on segments retain one uninterrupted 15 ms pulse. Some OEMs
-    // replace a single short segment with the same medium click at every amplitude.
+    // Distinguish tiers in duration as well as amplitude. Some OEMs map all
+    // very short pulses to the same system click regardless of amplitude.
     static readonly Pattern score = new Pattern(10,
-        new long[] { 0, 7, 8 }, new int[] { 0, 200, 200 }, new long[] { 0, 15 });
+        new long[] { 0, 15, 15 }, new int[] { 0, 95, 0 }, new long[] { 0, 15, 15 });
     static readonly Pattern star = new Pattern(60,
-        new long[] { 0, 7, 8 }, new int[] { 0, 230, 230 }, new long[] { 0, 15 });
+        new long[] { 0, 45 }, new int[] { 0, 180 }, new long[] { 0, 55 });
     static readonly Pattern finalStar = new Pattern(70,
-        new long[] { 0, 7, 8 }, new int[] { 0, 255, 255 }, new long[] { 0, 15 });
+        new long[] { 0, 110 }, new int[] { 0, 255 }, new long[] { 0, 130 });
     static readonly Pattern damage = new Pattern(80,
         new long[] { 0, 90 }, new int[] { 0, 230 }, new long[] { 0, 110 });
     static readonly Pattern death = new Pattern(100,
@@ -53,7 +56,7 @@ public static class GameHaptics
 
     static readonly Queue<HapticEvent> pendingPickups = new Queue<HapticEvent>();
     static float nextPickupTime;
-    static float lastScore = float.NegativeInfinity;
+    static bool scoreRunning;
     static float activeUntil;
     static int activePriority;
     static bool paused;
@@ -123,6 +126,12 @@ public static class GameHaptics
             return;
         }
 
+        if (kind == HapticEvent.Score)
+        {
+            PlayScore();
+            return;
+        }
+
         if (kind == HapticEvent.Pickup || kind == HapticEvent.CriticalPickup)
         {
             // Keep every collection in a burst. Spacing the short pulses makes
@@ -145,6 +154,21 @@ public static class GameHaptics
             nextPickupTime = Mathf.Max(now + .075f, activeUntil + .035f);
     }
 
+    static void PlayScore()
+    {
+        if (scoreRunning || Time.realtimeSinceStartup < activeUntil) return;
+        bool started = false;
+#if UNITY_ANDROID && !UNITY_EDITOR
+        started = PlayAndroid(score, 1) > 0f;
+#elif UNITY_IOS && !UNITY_EDITOR
+        started = DarkNebulaPlayHapticPattern(score.Timing, score.Strength, score.Timing.Length, 1f, 1) != 0;
+#endif
+        if (!started) return;
+        scoreRunning = true;
+        activePriority = score.Priority;
+        activeUntil = float.PositiveInfinity;
+    }
+
     static bool PlayImmediate(HapticEvent kind)
     {
         float now = Time.realtimeSinceStartup;
@@ -152,47 +176,31 @@ public static class GameHaptics
         // Android replaces an active effect on every vibrate call. Only a more
         // important event may interrupt; a death always gets its full duration.
         if (now < activeUntil && pattern.Priority <= activePriority) return false;
-        if (kind == HapticEvent.Score && now - lastScore < .188f) return false;
+        // Replace a counting loop once, then let the higher-priority finite
+        // event finish before counting can start another loop.
+        if (scoreRunning) Cancel();
 
         float duration = 0f;
 #if UNITY_ANDROID && !UNITY_EDITOR
         duration = PlayAndroid(pattern);
 #elif UNITY_IOS && !UNITY_EDITOR
         if (now < activeUntil) DarkNebulaCancelHaptics();
-        if (kind == HapticEvent.Score)
-        {
-            DarkNebulaScoreTick();
-            duration = .015f;
-        }
-        else if (kind == HapticEvent.Star || kind == HapticEvent.FinalStar)
-        {
-            DarkNebulaStarAward(kind == HapticEvent.FinalStar ? 1f : .9f);
-            duration = .015f;
-        }
-        else
-        {
-            // iOS's generic Vibrate is a long, full-strength system buzz.
-            // Match the finite gameplay pattern and soften ordinary pickups.
-            float intensityScale = kind == HapticEvent.Pickup ? .65f : 1f;
-            if (DarkNebulaPlayHapticPattern(pattern.Timing, pattern.Strength, pattern.Timing.Length, intensityScale) != 0)
-                duration = Duration(pattern.Timing);
-        }
+        // Use the same graded patterns on both platforms, including both
+        // jump-pad pulses. Ordinary collection remains softer on iOS.
+        float intensityScale = kind == HapticEvent.Pickup ? .65f : 1f;
+        if (DarkNebulaPlayHapticPattern(pattern.Timing, pattern.Strength, pattern.Timing.Length, intensityScale, 0) != 0)
+            duration = Duration(pattern.Timing);
 #endif
         // A failed/unsupported backend must not consume an event's cooldown.
         if (duration <= 0f) return false;
         activePriority = pattern.Priority;
         activeUntil = now + duration;
-        if (kind == HapticEvent.Score) lastScore = now;
         return true;
     }
 
 #if UNITY_IOS && !UNITY_EDITOR
     [System.Runtime.InteropServices.DllImport("__Internal")]
-    static extern void DarkNebulaScoreTick();
-    [System.Runtime.InteropServices.DllImport("__Internal")]
-    static extern void DarkNebulaStarAward(float intensity);
-    [System.Runtime.InteropServices.DllImport("__Internal")]
-    static extern int DarkNebulaPlayHapticPattern(long[] timing, int[] strength, int count, float intensityScale);
+    static extern int DarkNebulaPlayHapticPattern(long[] timing, int[] strength, int count, float intensityScale, int repeating);
     [System.Runtime.InteropServices.DllImport("__Internal")]
     static extern void DarkNebulaCancelHaptics();
 #endif
@@ -219,6 +227,7 @@ public static class GameHaptics
             case HapticEvent.Death: return death;
             case HapticEvent.MechanismHit: return mechanismHit;
             case HapticEvent.MechanismDestroyed: return mechanismDestroyed;
+            case HapticEvent.PlatformMove: return platformMove;
             default: return damage;
         }
     }
@@ -249,7 +258,7 @@ public static class GameHaptics
         activeUntil = 0f;
         pendingPickups.Clear();
         nextPickupTime = 0f;
-        lastScore = float.NegativeInfinity;
+        scoreRunning = false;
     }
 
     internal static void ApplicationPaused(bool value)
@@ -332,7 +341,7 @@ public static class GameHaptics
         }
     }
 
-    static float PlayAndroid(Pattern pattern)
+    static float PlayAndroid(Pattern pattern, int repeat = -1)
     {
         if (!InitializeAndroid())
         {
@@ -346,8 +355,8 @@ public static class GameHaptics
             {
                 using (var effectClass = new AndroidJavaClass("android.os.VibrationEffect"))
                 using (var effect = amplitudeControl
-                    ? effectClass.CallStatic<AndroidJavaObject>("createWaveform", timing, pattern.Strength, -1)
-                    : effectClass.CallStatic<AndroidJavaObject>("createWaveform", timing, -1))
+                    ? effectClass.CallStatic<AndroidJavaObject>("createWaveform", timing, pattern.Strength, repeat)
+                    : effectClass.CallStatic<AndroidJavaObject>("createWaveform", timing, repeat))
                     vibrator.Call("vibrate", effect, gameAttributes);
                 nativeMayBeRunning = false;
                 return Duration(timing);
@@ -362,9 +371,9 @@ public static class GameHaptics
         {
             // Never pass low-amplitude timings to the legacy full-power motor.
             if (gameAttributes != null)
-                vibrator.Call("vibrate", pattern.FallbackTiming, -1, gameAttributes);
+                vibrator.Call("vibrate", pattern.FallbackTiming, repeat, gameAttributes);
             else
-                vibrator.Call("vibrate", pattern.FallbackTiming, -1);
+                vibrator.Call("vibrate", pattern.FallbackTiming, repeat);
             nativeMayBeRunning = false;
             return Duration(pattern.FallbackTiming);
         }

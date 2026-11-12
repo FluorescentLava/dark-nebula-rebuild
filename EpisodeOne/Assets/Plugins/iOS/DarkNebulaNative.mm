@@ -5,6 +5,8 @@
 
 static CHHapticEngine *hapticEngine;
 static NSMutableArray *hapticPlayers;
+static NSUInteger fallbackGeneration;
+static dispatch_source_t scoreFallbackTimer;
 
 static CHHapticEngine *DarkNebulaHapticEngine()
 {
@@ -25,10 +27,19 @@ static CHHapticEngine *DarkNebulaHapticEngine()
     return hapticEngine;
 }
 
-static bool DarkNebulaStartPattern(CHHapticEngine *engine, CHHapticPattern *pattern)
+static bool DarkNebulaStartPattern(CHHapticEngine *engine, CHHapticPattern *pattern, bool repeating, double duration)
 {
     NSError *error = nil;
-    id<CHHapticPatternPlayer> player = [engine createPlayerWithPattern:pattern error:&error];
+    id<CHHapticPatternPlayer> player;
+    if (repeating)
+    {
+        id<CHHapticAdvancedPatternPlayer> loop = [engine createAdvancedPlayerWithPattern:pattern error:&error];
+        if (loop == nil) return false;
+        loop.loopEnabled = YES;
+        loop.loopEnd = duration;
+        player = loop;
+    }
+    else player = [engine createPlayerWithPattern:pattern error:&error];
     if (player == nil) return false;
     // The collection keeps the active player alive with and without ARC.
     if (hapticPlayers == nil) hapticPlayers = [[NSMutableArray alloc] init];
@@ -37,30 +48,22 @@ static bool DarkNebulaStartPattern(CHHapticEngine *engine, CHHapticPattern *patt
     return [player startAtTime:CHHapticTimeImmediate error:&error];
 }
 
-// Reuse the engine, but give each numeric tick/award its own finite 15 ms
-// event. This continues for any counting duration without a repeating player.
-static bool DarkNebulaTimedImpact(float intensity, float sharpness)
+static void DarkNebulaImpact(float intensity)
 {
-    CHHapticEngine *engine = DarkNebulaHapticEngine();
-    if (engine == nil) return false;
-    NSError *error = nil;
-    CHHapticEventParameter *strength = [[CHHapticEventParameter alloc]
-        initWithParameterID:CHHapticEventParameterIDHapticIntensity value:intensity];
-    CHHapticEventParameter *texture = [[CHHapticEventParameter alloc]
-        initWithParameterID:CHHapticEventParameterIDHapticSharpness value:sharpness];
-    CHHapticEvent *event = [[CHHapticEvent alloc]
-        initWithEventType:CHHapticEventTypeHapticContinuous
-        parameters:@[strength, texture] relativeTime:0 duration:0.015];
-    CHHapticPattern *pattern = [[CHHapticPattern alloc]
-        initWithEvents:@[event] parameters:@[] error:&error];
-    if (pattern == nil) return false;
-    return DarkNebulaStartPattern(engine, pattern);
+    UIImpactFeedbackStyle style = intensity < 0.4f ? UIImpactFeedbackStyleLight :
+        intensity < 0.8f ? UIImpactFeedbackStyleMedium : UIImpactFeedbackStyleHeavy;
+    static UIImpactFeedbackGenerator *feedback[3];
+    if (feedback[style] == nil)
+        feedback[style] = [[UIImpactFeedbackGenerator alloc] initWithStyle:style];
+    [feedback[style] impactOccurredWithIntensity:intensity];
+    [feedback[style] prepare];
 }
 
 extern "C" int DarkNebulaPlayHapticPattern(const int64_t *timing, const int32_t *strength,
-                                          int count, float intensityScale)
+                                          int count, float intensityScale, int repeating)
 {
     if (timing == nullptr || strength == nullptr || count <= 0) return 0;
+    NSUInteger generation = ++fallbackGeneration;
     NSMutableArray<CHHapticEvent *> *events = [NSMutableArray array];
     double time = 0;
     float peakIntensity = 0;
@@ -68,9 +71,11 @@ extern "C" int DarkNebulaPlayHapticPattern(const int64_t *timing, const int32_t 
     {
         double duration = timing[i] / 1000.0;
         float intensity = strength[i] / 255.0f * intensityScale;
-        if (duration > 0 && intensity > 0)
+        peakIntensity = MAX(peakIntensity, intensity);
+        // Include the silent segment in looping patterns so loopEnd covers
+        // the 15 ms rest as well as the 15 ms counting pulse.
+        if (duration > 0 && (intensity > 0 || repeating))
         {
-            peakIntensity = MAX(peakIntensity, intensity);
             CHHapticEventParameter *level = [[CHHapticEventParameter alloc]
                 initWithParameterID:CHHapticEventParameterIDHapticIntensity value:intensity];
             CHHapticEventParameter *texture = [[CHHapticEventParameter alloc]
@@ -88,45 +93,49 @@ extern "C" int DarkNebulaPlayHapticPattern(const int64_t *timing, const int32_t 
         NSError *error = nil;
         CHHapticPattern *pattern = [[CHHapticPattern alloc]
             initWithEvents:events parameters:@[] error:&error];
-        if (pattern != nil && DarkNebulaStartPattern(engine, pattern)) return 1;
+        if (pattern != nil && DarkNebulaStartPattern(engine, pattern, repeating != 0, time)) return 1;
     }
-    // Older hardware gets a scaled impact instead of the long system vibration.
-    UIImpactFeedbackStyle style = peakIntensity < 0.4f ? UIImpactFeedbackStyleLight :
-        peakIntensity < 0.8f ? UIImpactFeedbackStyleMedium : UIImpactFeedbackStyleHeavy;
-    static UIImpactFeedbackGenerator *feedback[3];
-    if (feedback[style] == nil)
-        feedback[style] = [[UIImpactFeedbackGenerator alloc] initWithStyle:style];
-    [feedback[style] impactOccurredWithIntensity:peakIntensity];
-    [feedback[style] prepare];
+    if (repeating)
+    {
+        scoreFallbackTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
+        dispatch_source_set_timer(scoreFallbackTimer, DISPATCH_TIME_NOW, (uint64_t)(time * NSEC_PER_SEC), NSEC_PER_MSEC);
+        dispatch_source_set_event_handler(scoreFallbackTimer, ^{
+            if (generation == fallbackGeneration) DarkNebulaImpact(peakIntensity);
+        });
+        dispatch_resume(scoreFallbackTimer);
+        return 1;
+    }
+    // Preserve pulse timing on older hardware too. Each segment uses its
+    // light/medium/heavy impact, and cancellation invalidates pending blocks.
+    double delay = 0;
+    for (int i = 0; i < count; ++i)
+    {
+        double duration = timing[i] / 1000.0;
+        float intensity = MIN(1.0f, MAX(0.0f, strength[i] / 255.0f * intensityScale));
+        if (duration > 0 && intensity > 0)
+        {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                if (generation == fallbackGeneration) DarkNebulaImpact(intensity);
+            });
+        }
+        delay += duration;
+    }
     return 1;
 }
 
 extern "C" void DarkNebulaCancelHaptics()
 {
+    ++fallbackGeneration;
+    if (scoreFallbackTimer != nil)
+    {
+        dispatch_source_cancel(scoreFallbackTimer);
+        scoreFallbackTimer = nil;
+    }
     NSError *error = nil;
     for (id<CHHapticPatternPlayer> player in hapticPlayers)
         [player stopAtTime:CHHapticTimeImmediate error:&error];
     [hapticPlayers removeAllObjects];
-}
-
-extern "C" void DarkNebulaScoreTick()
-{
-    if (DarkNebulaTimedImpact(0.75f, 0.5f)) return;
-    static UIImpactFeedbackGenerator *feedback;
-    if (feedback == nil)
-        feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
-    [feedback impactOccurredWithIntensity:1.0];
-    [feedback prepare];
-}
-
-extern "C" void DarkNebulaStarAward(float intensity)
-{
-    if (DarkNebulaTimedImpact(intensity, 1.0f)) return;
-    static UIImpactFeedbackGenerator *feedback;
-    if (feedback == nil)
-        feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
-    [feedback impactOccurredWithIntensity:intensity];
-    [feedback prepare];
 }
 
 extern "C" void DarkNebulaOpenEpisodeTwo()

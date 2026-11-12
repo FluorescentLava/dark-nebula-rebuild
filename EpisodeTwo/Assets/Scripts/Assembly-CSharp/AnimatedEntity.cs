@@ -201,6 +201,7 @@ public class AnimatedEntity : Entity
 		presentationAnimation.addNode(position, 0f, null);
 		presentationAnimation.prepare();
 		presentationAnimation.play();
+		PlayPlatformMovementHaptic();
 		presentationAnimation.update();
 		SetPosition(presentationAnimation.getPosition());
 		base.GetComponent<Collider>().enabled = true;
@@ -480,7 +481,14 @@ public class AnimatedEntity : Entity
 		if (curveAnimation != null)
 		{
 			curveAnimation.play();
+			PlayPlatformMovementHaptic();
 		}
+	}
+
+	private void PlayPlatformMovementHaptic()
+	{
+		if (canBeBorded && World.IsRunning && !World.IsFrozen(transform.position.z))
+			GameHaptics.Play(HapticEvent.PlatformMove);
 	}
 
 	public void addCurveAnimationNodes()

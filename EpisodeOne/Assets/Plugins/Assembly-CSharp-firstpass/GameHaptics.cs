@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // Append new events so existing serialized/numeric callers keep their values.
-public enum HapticEvent { Damage, Jump, Pickup, Spawn, Finish, Score, Star, CriticalPickup, Death, Spring, FinalStar }
+public enum HapticEvent { Damage, Jump, Pickup, Spawn, Finish, Score, Star, CriticalPickup, Death, Spring, FinalStar, MechanismHit, MechanismDestroyed }
 
 public static class GameHaptics
 {
@@ -47,9 +48,13 @@ public static class GameHaptics
         new long[] { 0, 90 }, new int[] { 0, 230 }, new long[] { 0, 110 });
     static readonly Pattern death = new Pattern(100,
         new long[] { 0, 650 }, new int[] { 0, 255 }, new long[] { 0, 650 });
+    static readonly Pattern mechanismHit = new Pattern(65,
+        new long[] { 0, 45 }, new int[] { 0, 180 }, new long[] { 0, 55 });
+    static readonly Pattern mechanismDestroyed = new Pattern(75,
+        new long[] { 0, 110 }, new int[] { 0, 255 }, new long[] { 0, 130 });
 
-    static float lastPickup = float.NegativeInfinity;
-    static float lastCriticalPickup = float.NegativeInfinity;
+    static readonly Queue<HapticEvent> pendingPickups = new Queue<HapticEvent>();
+    static float nextPickupTime;
     static float lastScore = float.NegativeInfinity;
     static float activeUntil;
     static int activePriority;
@@ -120,19 +125,42 @@ public static class GameHaptics
             return;
         }
 
+        if (kind == HapticEvent.Pickup || kind == HapticEvent.CriticalPickup)
+        {
+            // Keep every collection in a burst. Spacing the short pulses makes
+            // simultaneous or magnet-attracted pickups individually perceptible.
+            pendingPickups.Enqueue(kind);
+            UpdatePendingPickups();
+            return;
+        }
+        if (kind == HapticEvent.Death || kind == HapticEvent.Spawn || kind == HapticEvent.Finish)
+            pendingPickups.Clear();
+        PlayImmediate(kind);
+    }
+
+    internal static void UpdatePendingPickups()
+    {
+        if (paused || GamePreferences.Vibration != VibrationMode.Enhanced || pendingPickups.Count == 0) return;
+        float now = Time.realtimeSinceStartup;
+        if (now < activeUntil || now < nextPickupTime) return;
+        if (PlayImmediate(pendingPickups.Dequeue()))
+            nextPickupTime = Mathf.Max(now + .075f, activeUntil + .035f);
+    }
+
+    static bool PlayImmediate(HapticEvent kind)
+    {
         float now = Time.realtimeSinceStartup;
         Pattern pattern = PatternFor(kind);
         // Android replaces an active effect on every vibrate call. Only a more
         // important event may interrupt; a death always gets its full duration.
-        if (now < activeUntil && pattern.Priority <= activePriority) return;
-        if (kind == HapticEvent.CriticalPickup && now - lastCriticalPickup < .075f) return;
-        if (kind == HapticEvent.Pickup && now - lastPickup < .075f) return;
-        if (kind == HapticEvent.Score && now - lastScore < .188f) return;
+        if (now < activeUntil && pattern.Priority <= activePriority) return false;
+        if (kind == HapticEvent.Score && now - lastScore < .188f) return false;
 
         float duration = 0f;
 #if UNITY_ANDROID && !UNITY_EDITOR
         duration = PlayAndroid(pattern);
 #elif UNITY_IOS && !UNITY_EDITOR
+        if (now < activeUntil) DarkNebulaCancelHaptics();
         if (kind == HapticEvent.Score)
         {
             DarkNebulaScoreTick();
@@ -145,17 +173,19 @@ public static class GameHaptics
         }
         else
         {
-            Handheld.Vibrate();
-            duration = .65f;
+            // iOS's generic Vibrate is a long, full-strength system buzz.
+            // Match the finite gameplay pattern and soften ordinary pickups.
+            float intensityScale = kind == HapticEvent.Pickup ? .65f : 1f;
+            if (DarkNebulaPlayHapticPattern(pattern.Timing, pattern.Strength, pattern.Timing.Length, intensityScale) != 0)
+                duration = Duration(pattern.Timing);
         }
 #endif
         // A failed/unsupported backend must not consume an event's cooldown.
-        if (duration <= 0f) return;
+        if (duration <= 0f) return false;
         activePriority = pattern.Priority;
         activeUntil = now + duration;
-        if (kind == HapticEvent.CriticalPickup) lastCriticalPickup = lastPickup = now;
-        if (kind == HapticEvent.Pickup) lastPickup = now;
         if (kind == HapticEvent.Score) lastScore = now;
+        return true;
     }
 
 #if UNITY_IOS && !UNITY_EDITOR
@@ -163,6 +193,10 @@ public static class GameHaptics
     static extern void DarkNebulaScoreTick();
     [System.Runtime.InteropServices.DllImport("__Internal")]
     static extern void DarkNebulaStarAward(float intensity);
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    static extern int DarkNebulaPlayHapticPattern(long[] timing, int[] strength, int count, float intensityScale);
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    static extern void DarkNebulaCancelHaptics();
 #endif
 
     // A score ending must not cancel a star, damage or another stronger event.
@@ -185,6 +219,8 @@ public static class GameHaptics
             case HapticEvent.Star: return star;
             case HapticEvent.FinalStar: return finalStar;
             case HapticEvent.Death: return death;
+            case HapticEvent.MechanismHit: return mechanismHit;
+            case HapticEvent.MechanismDestroyed: return mechanismDestroyed;
             default: return damage;
         }
     }
@@ -198,6 +234,9 @@ public static class GameHaptics
 
     public static void Cancel()
     {
+#if UNITY_IOS && !UNITY_EDITOR
+        DarkNebulaCancelHaptics();
+#endif
 #if UNITY_ANDROID && !UNITY_EDITOR
         if (vibrator == null && nativeMayBeRunning) InitializeAndroid();
         try { if (vibrator != null) vibrator.Call("cancel"); }
@@ -210,7 +249,9 @@ public static class GameHaptics
 #endif
         activePriority = 0;
         activeUntil = 0f;
-        lastPickup = lastCriticalPickup = lastScore = float.NegativeInfinity;
+        pendingPickups.Clear();
+        nextPickupTime = 0f;
+        lastScore = float.NegativeInfinity;
     }
 
     internal static void ApplicationPaused(bool value)

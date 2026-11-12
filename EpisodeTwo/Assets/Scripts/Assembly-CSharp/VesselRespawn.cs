@@ -39,7 +39,7 @@ public class VesselRespawn : Entity
 		standardVessel.canMove = false;
 		standardVessel.Hide();
 		standardVessel.Layer = GetParameterInt("layer");
-		standardVessel.transform.position = base.transform.position;
+		standardVessel.SetSpawnPosition(base.transform.position);
 		standardVessel.SpawnerType = GetParameterInt("spawnertype");
 		standardVessel.InitiateSpawner((VesselSkinType)GetParameterInt("skinType"), false, GetParameterInt("doneFlag"), GetParameterInt("scrollInLength"), GetParameterInt("scrollInTime"));
 	}

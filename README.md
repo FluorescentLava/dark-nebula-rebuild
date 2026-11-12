@@ -4,6 +4,10 @@
 
 A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for modern mobile devices, combining content recovered from the iOS and Android releases.
 
+## Project status
+
+The current verification and regression work is complete. All currently identified bugs inherited from the original games or introduced during restoration have been fixed. Active development is on hold unless a major bug or missing feature is found. Please report problems through [GitHub Issues](https://github.com/FluorescentLava/dark-nebula-rebuild/issues), ideally with your device, system version, steps to reproduce, and screenshots or recordings.
+
 ## Features
 
 ### Core features
@@ -29,6 +33,7 @@ A Unity 6 restoration of **Dark Nebula Episode One** and **Episode Two** for mod
 - [x] Vibration modes: disabled, original and enhanced; enhanced by default.
 - [x] Enhanced vibration with decaying multi-pulse jump-pad feedback, light ordinary-pickup and medium shard/1UP feedback, and 650 ms death feedback protected from weaker events.
 - [x] Background sensor calibration before each level starts.
+- [x] Manual calibration keeps the completion screen open until the player chooses Go Back.
 - [x] WASD controls for Windows Unity debugging, excluded from Release builds.
 
 ## Build from source

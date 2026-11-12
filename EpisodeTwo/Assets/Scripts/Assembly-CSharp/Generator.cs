@@ -60,6 +60,16 @@ public class Generator : Enemy
 		}
 	}
 
+	public override void ReceiveDamage(int damage, RotationAngle impactDirectionRadian = null)
+	{
+		int previousHealth = base.Health;
+		base.ReceiveDamage(damage, impactDirectionRadian);
+		if (base.Health < previousHealth)
+		{
+			GameHaptics.Play(base.Health == 0 ? HapticEvent.MechanismDestroyed : HapticEvent.MechanismHit);
+		}
+	}
+
 	public override void Update()
 	{
 		base.Update();

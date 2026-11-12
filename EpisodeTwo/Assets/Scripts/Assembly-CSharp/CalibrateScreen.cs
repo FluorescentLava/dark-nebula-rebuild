@@ -12,7 +12,7 @@ public class CalibrateScreen : MonoBehaviour
 
 	private SimpleText _titleText;
 
-	private float _triggerGoBackAtTime;
+	private bool calibrated;
     private bool closing;
     private float openedAt;
     private Renderer backdrop;
@@ -42,18 +42,17 @@ public class CalibrateScreen : MonoBehaviour
 		RefreshInstructionLayout();
 		ButtonCalibrate.GetComponent<SimpleButton>().ButtonUpEvent += delegate
 		{
-            if (closing || _triggerGoBackAtTime != 0f) return;
+            if (closing || calibrated) return;
 			UserSettings.I.Calibrate();
-			SimpleText[] componentsInChildren2 = GetComponentsInChildren<SimpleText>();
-			foreach (SimpleText simpleText2 in componentsInChildren2)
+			calibrated = true;
+			foreach (Transform line in _instructionLines)
 			{
-				simpleText2.GetComponent<Renderer>().enabled = false;
+				if (line != null) line.GetComponent<Renderer>().enabled = false;
 			}
 			Title.GetComponent<SimpleText>().SetStringID("CALIBRATED!");
 			Title.GetComponent<Renderer>().enabled = true;
-			ButtonGoBack.SetActive(false);
+			ButtonGoBack.SetActive(true);
 			ButtonCalibrate.SetActive(false);
-			_triggerGoBackAtTime = Time.realtimeSinceStartup + 2f;
 		};
 		ButtonGoBack.GetComponent<SimpleButton>().ButtonUpEvent += delegate
 		{
@@ -67,9 +66,8 @@ public class CalibrateScreen : MonoBehaviour
         closing = false;
         openedAt = Time.realtimeSinceStartup;
 		GamePreferences.Changed += RefreshInstructionLayout;
-		_triggerGoBackAtTime = 0f;
-		// The previous calibration leaves both button hierarchies inactive.
-		// Restore their text renderers as well as the currently active labels.
+		calibrated = false;
+		// Restore instructions and controls when reopening the calibration screen.
 		SimpleText[] componentsInChildren = GetComponentsInChildren<SimpleText>(true);
 		foreach (SimpleText simpleText in componentsInChildren)
 		{
@@ -121,7 +119,6 @@ public class CalibrateScreen : MonoBehaviour
 	{
         if (closing) return;
         closing = true;
-		_triggerGoBackAtTime = 0f;
         SceneTransitionInput.SuppressFor(.7f);
 		if (EventGoBack != null)
 		{
@@ -148,11 +145,7 @@ public class CalibrateScreen : MonoBehaviour
 
 	public virtual void Update()
 	{
-		if (!closing && _triggerGoBackAtTime == 0f && Time.realtimeSinceStartup > openedAt + .2f && Input.GetKeyUp(KeyCode.Escape))
-		{
-			OnGoBack();
-		}
-		if (_triggerGoBackAtTime != 0f && !(_triggerGoBackAtTime > Time.realtimeSinceStartup))
+		if (!closing && Time.realtimeSinceStartup > openedAt + .2f && Input.GetKeyUp(KeyCode.Escape))
 		{
 			OnGoBack();
 		}

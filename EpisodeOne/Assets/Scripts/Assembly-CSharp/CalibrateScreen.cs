@@ -13,7 +13,7 @@ public class CalibrateScreen : MonoBehaviour
 
 	public DynamicFont Text;
 
-	private float _triggerGoBackAtTime;
+	private bool calibrated;
     private bool closing;
     private float openedAt;
     private Renderer backdrop;
@@ -29,13 +29,13 @@ public class CalibrateScreen : MonoBehaviour
 		ButtonCalibrate.Text = "CALIBRATE CONTROLS".Localize();
 		ButtonCalibrate.ButtonUpEvent += delegate
 		{
-            if (closing || _triggerGoBackAtTime != 0f) return;
+            if (closing || calibrated) return;
 			UserSettings.Instance.Calibrate();
+			calibrated = true;
 			Text.GetComponent<Renderer>().enabled = false;
 			TitleText.Text = "CALIBRATED!".Localize();
-			ButtonGoBack.gameObject.SetActive(false);
+			ButtonGoBack.gameObject.SetActive(true);
 			ButtonCalibrate.gameObject.SetActive(false);
-			_triggerGoBackAtTime = Time.realtimeSinceStartup + 2f;
 		};
 		ButtonGoBack.Text = "GO BACK".Localize();
 		ButtonGoBack.ButtonUpEvent += delegate
@@ -50,7 +50,7 @@ public class CalibrateScreen : MonoBehaviour
         openedAt = Time.realtimeSinceStartup;
 		ConfigureTextSize();
 		Text.Text = "CALIBRATE TEXT".Localize();
-		_triggerGoBackAtTime = 0f;
+		calibrated = false;
 		Text.GetComponent<Renderer>().enabled = true;
 		TitleText.Text = "CALIBRATE".Localize();
 		ButtonGoBack.gameObject.SetActive(true);
@@ -69,7 +69,6 @@ public class CalibrateScreen : MonoBehaviour
 	{
         if (closing) return;
         closing = true;
-        _triggerGoBackAtTime = 0f;
         SceneTransitionInput.SuppressFor(.7f);
 		if (EventGoBack != null)
 		{
@@ -96,11 +95,7 @@ public class CalibrateScreen : MonoBehaviour
 
 	public virtual void Update()
 	{
-		if (!closing && _triggerGoBackAtTime == 0f && Time.realtimeSinceStartup > openedAt + .2f && Input.GetKeyUp(KeyCode.Escape))
-		{
-			OnGoBack();
-		}
-		if (_triggerGoBackAtTime != 0f && !(_triggerGoBackAtTime > Time.realtimeSinceStartup))
+		if (!closing && Time.realtimeSinceStartup > openedAt + .2f && Input.GetKeyUp(KeyCode.Escape))
 		{
 			OnGoBack();
 		}

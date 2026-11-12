@@ -32,7 +32,7 @@ public class StandardVessel : Vessel
 
 	private tk2dAnimatedSprite _animEnergy;
 
-	private Vector3 _lastCheckpoint = new Vector3(0f, 0f, -1f);
+	private Vector3 _lastCheckpoint;
 
 	private bool _firstTimeSpawned = true;
 
@@ -304,7 +304,7 @@ public class StandardVessel : Vessel
 		_animShieldPos = _animShield.transform.localPosition;
 		_animEnergyPos = _animEnergy.transform.localPosition;
 		_anim.animationCompleteDelegate = OnAnimationComplete;
-		_lastCheckpoint.z = -1f;
+		_lastCheckpoint = base.transform.position;
 		Reset();
 		World.hud.UpdateLives();
 		World.hud.UpdateOrbs();
@@ -517,10 +517,6 @@ public class StandardVessel : Vessel
 		}
 		velocityThisFrame *= 100f * Time.deltaTime * Acceleration;
 		_rigidbody.AddForce(velocityThisFrame - _rigidbody.linearVelocity, ForceMode.VelocityChange);
-		if (_lastCheckpoint.z == -1f)
-		{
-			_lastCheckpoint = base.transform.position;
-		}
 	}
 
 	public void UpdateMovement()
@@ -680,9 +676,9 @@ public class StandardVessel : Vessel
 
 	public override void TriggerCheckpoint(Vector3 pCheckpoint)
 	{
-		if (!_isFalling && (_lastCheckpoint.z == -1f || _lastCheckpoint.z < pCheckpoint.z))
+		if (!_isFalling && !_isDead && _lastCheckpoint.z < pCheckpoint.z)
 		{
-			_lastCheckpoint = pCheckpoint;
+			_lastCheckpoint = new Vector3(pCheckpoint.x, _lastCheckpoint.y, pCheckpoint.z);
 			World.skillMeter.NotifyOfCheckpoint();
 		}
 	}
@@ -840,16 +836,15 @@ public class StandardVessel : Vessel
 
 	private void DieComplete()
 	{
+		RestoreCheckpoint();
 		if (World.isInMatrixMode)
 		{
-			_transform.position = new Vector3(_lastCheckpoint.x, _transform.position.y, _lastCheckpoint.z);
 			Reset();
 			_invincibleTimer = 3.3333333f;
 		}
 		else
 		{
 			Vessel._lives--;
-			_transform.position = new Vector3(_lastCheckpoint.x, _transform.position.y, _lastCheckpoint.z);
 			if (Vessel._lives > 0)
 			{
 				World.hud.UpdateLives();
@@ -863,6 +858,30 @@ public class StandardVessel : Vessel
 		}
 		dieTimer = 40;
 		InitiateSpawner(skinType, true, 0, 0, 0);
+	}
+
+	public void SetSpawnPosition(Vector3 position)
+	{
+		// Scripted spawns (including portal transitions) start a new checkpoint section.
+		_lastCheckpoint = position;
+		RestoreCheckpoint();
+	}
+
+	private void RestoreCheckpoint()
+	{
+		RigidbodyInterpolation interpolation = _rigidbody.interpolation;
+		_rigidbody.interpolation = RigidbodyInterpolation.None;
+		_rigidbody.linearVelocity = Vector3.zero;
+		_rigidbody.angularVelocity = Vector3.zero;
+		_rigidbody.position = _lastCheckpoint;
+		_transform.position = _lastCheckpoint;
+		Physics.SyncTransforms();
+		_rigidbody.interpolation = interpolation;
+		ResetForcedVelocity();
+		forcedVelocity = Vector2.zero;
+		velocityThisFrame = Vector3.zero;
+		treadmillActivated = false;
+		lastFilteredAccelerometerPosition = Vector2.zero;
 	}
 
 	private void SetGfxActive(bool on)

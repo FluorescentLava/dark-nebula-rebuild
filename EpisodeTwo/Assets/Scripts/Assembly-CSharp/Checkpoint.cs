@@ -6,15 +6,12 @@ public class Checkpoint : Entity
 
 	private float _z;
 
-	private bool HasBeenPassed;
-
 	private bool isShieldVisible = true;
 
 	private void Start()
 	{
 		shield = GetComponentInChildren<Shield>();
 		_z = base.transform.position.z;
-		HasBeenPassed = false;
 	}
 
 	private void Update()
@@ -50,9 +47,8 @@ public class Checkpoint : Entity
 
 	private void OnTriggerEnter(Collider other)
 	{
-		if (!HasBeenPassed && other.gameObject.CompareTag("Player"))
+		if (other.gameObject.CompareTag("Player"))
 		{
-			HasBeenPassed = true;
 			World.vessel.TriggerCheckpoint(base.transform.position);
 		}
 	}

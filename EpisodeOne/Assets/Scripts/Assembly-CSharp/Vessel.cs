@@ -64,7 +64,7 @@ public class Vessel : Entity
 
 	private SecureInt _lifeOrbsCollectedOnThisLevel = 0;
 
-	private float _lastCheckpoint = -1f;
+	private Vector3 _lastCheckpoint;
 
 	private float _invincibleTimer;
 
@@ -77,8 +77,6 @@ public class Vessel : Entity
 	private float _scale = 1f;
 
 	private bool _isPlayingJumpAnimation;
-
-	private Vector3 _startPosition;
 
 	private bool _isFalling;
 
@@ -293,10 +291,9 @@ public class Vessel : Entity
 		_speedBonus = BoosterManager.SpeedBonus;
 		_cameraFollow = World.cameraFollow;
 		_cameraTransform = _cameraFollow.GetComponent<Camera>().transform;
-		_startPosition = _transform.position;
 		tk2dSpriteAnimator vesselAnimator = _vesselAnimator;
 		vesselAnimator.AnimationCompleted = (Action<tk2dSpriteAnimator, tk2dSpriteAnimationClip>)Delegate.Combine(vesselAnimator.AnimationCompleted, new Action<tk2dSpriteAnimator, tk2dSpriteAnimationClip>(OnAnimationComplete));
-		_lastCheckpoint = _transform.position.z;
+		_lastCheckpoint = _transform.position;
 		_lifeOrbsCollectedOnThisLevel = 0;
 		_lives = CustomBuildVariables<CustomBuildVars>.Instance.Lives;
 		Reset();
@@ -566,11 +563,11 @@ public class Vessel : Entity
 		}
 	}
 
-	public void TriggerCheckpoint(float z)
+	public void TriggerCheckpoint(Vector3 position)
 	{
-		if (!_isFalling && (_lastCheckpoint == -1f || _lastCheckpoint < z))
+		if (!_isFalling && !_isDead && _lastCheckpoint.z < position.z)
 		{
-			_lastCheckpoint = z;
+			_lastCheckpoint = new Vector3(position.x, _lastCheckpoint.y, position.z);
 			World.skillMeter.NotifyOfCheckpoint();
 		}
 	}
@@ -748,15 +745,14 @@ public class Vessel : Entity
 
 	private void DieComplete()
 	{
+		RestoreCheckpoint();
 		if (World.isInMatrixMode)
 		{
-			_transform.position = new Vector3(_startPosition.x, _transform.position.y, _lastCheckpoint);
 			Reset();
 			_invincibleTimer = 3.3333333f;
 			return;
 		}
 		--_lives;
-		_transform.position = new Vector3(_startPosition.x, _transform.position.y, _lastCheckpoint);
 		if (!_lives.IsConsistent)
 		{
 			Debug.Log("SecureInt warning: _lives is inconsistent, setting 0 lives.");
@@ -781,6 +777,20 @@ public class Vessel : Entity
 		{
 			Hud.ShowGameOverScreen();
 		}
+	}
+
+	private void RestoreCheckpoint()
+	{
+		// Teleport the physics body too, so interpolation cannot restore the death position.
+		RigidbodyInterpolation interpolation = _rigidbody.interpolation;
+		_rigidbody.interpolation = RigidbodyInterpolation.None;
+		_rigidbody.linearVelocity = Vector3.zero;
+		_rigidbody.angularVelocity = Vector3.zero;
+		_rigidbody.position = _lastCheckpoint;
+		_transform.position = _lastCheckpoint;
+		Physics.SyncTransforms();
+		_rigidbody.interpolation = interpolation;
+		lastFilteredAccelerometerPosition = Vector2.zero;
 	}
 
 	private void SetGfxActive(bool on)

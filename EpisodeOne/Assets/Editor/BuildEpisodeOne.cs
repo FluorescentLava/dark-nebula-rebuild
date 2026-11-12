@@ -37,14 +37,14 @@ public static class BuildEpisodeOne
             UnityEditor.Android.AndroidExternalToolsSettings.ndkRootPath = ndk;
             UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath = jdk;
             PlayerSettings.productName = "Dark Nebula";
-            PlayerSettings.bundleVersion = "0.4.1";
+            PlayerSettings.bundleVersion = "0.4.2";
             PlayerSettings.SplashScreen.show = false;
             PlayerSettings.SplashScreen.showUnityLogo = false;
             LauncherIconBuilder.SetIcons();
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, validation ? "com.darknebula.validation.one" : "com.codex.darknebula.episode1.test");
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
-            PlayerSettings.Android.bundleVersionCode = 20;
+            PlayerSettings.Android.bundleVersionCode = 21;
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
             PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevel35;
             var scenes = EditorBuildSettings.scenes.Where(x => x.enabled).Select(x => x.path).ToArray();

@@ -31,7 +31,7 @@ public class Checkpoint : Entity
 	{
 		if (other.gameObject.CompareTag("Player"))
 		{
-			World.vessel.TriggerCheckpoint(base.transform.position.z);
+			World.vessel.TriggerCheckpoint(base.transform.position);
 		}
 	}
 }

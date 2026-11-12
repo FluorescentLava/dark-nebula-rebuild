@@ -130,16 +130,17 @@ public class AudioUnit : MonoBehaviour
 	{
 		if (_isRemoved || _isPaused) return;
 		_pause = true;
-		_changeToMusic = null;
 		BeginStop(pFadeTime);
 	}
 
 	public void Resume(float pFadeTime = 0f, float pVolume = -1f)
 	{
 		if (_isRemoved || AudioSource == null) return;
+		// A HUD resume during a fade must resume the requested track, including
+		// when the previous scene's music was paused before the switch finished.
+		ApplyPendingMusic();
 		_stop = false;
 		_pause = false;
-		_changeToMusic = null;
 		if (pVolume != -1f)
 		{
 			_volume = pVolume;
@@ -176,7 +177,20 @@ public class AudioUnit : MonoBehaviour
 		_changeToFadeTime = pFadeTime;
 		_changeToLoop = pLoop;
 		_changeToVolume = pVolume;
-		Stop(pFadeTime / 2f);
+		_pause = false;
+		BeginStop(pFadeTime / 2f);
+	}
+
+	private void ApplyPendingMusic()
+	{
+		if (_changeToMusic == null) return;
+		AudioSource.Stop();
+		AudioSource.clip = _changeToMusic;
+		AudioSource.loop = _changeToLoop;
+		_volume = _changeToVolume;
+		_changeToMusic = null;
+		_pausedAt = 0f;
+		_isPaused = false;
 	}
 
 	private void Update()
@@ -212,13 +226,7 @@ public class AudioUnit : MonoBehaviour
 				{
 					if (_changeToMusic != null)
 					{
-						AudioSource.Stop();
-						AudioSource.clip = _changeToMusic;
-						AudioSource.loop = _changeToLoop;
-						_volume = _changeToVolume;
-						_changeToMusic = null;
-						_pausedAt = 0f;
-						_isPaused = false;
+						ApplyPendingMusic();
 						Resume(_changeToFadeTime / 2f, -1f);
 						return;
 					}
@@ -245,6 +253,7 @@ public class AudioUnit : MonoBehaviour
 
 	public void Stop(float pFadeTime)
 	{
+		_changeToMusic = null;
 		_pause = false;
 		BeginStop(pFadeTime);
 	}

@@ -68,6 +68,17 @@ public class ScriptManager
 		return list;
 	}
 
+	public string GetIntroMusic()
+	{
+		foreach (Script script in scripts)
+		{
+			if (script.GetName() != "intro") continue;
+			List<string> music = script.GetMusic();
+			return music.Count > 0 ? music[0] : null;
+		}
+		return null;
+	}
+
 	public List<T> GetTasks<T>() where T : class
 	{
 		List<T> list = new List<T>();

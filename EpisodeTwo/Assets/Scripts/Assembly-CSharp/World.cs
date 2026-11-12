@@ -272,6 +272,8 @@ public class World : MonoBehaviour
 		ScriptLoader scriptLoader = new ScriptLoader(ScriptManager);
 		scriptLoader.LoadScripts(LevelNum);
 		scriptLoader.Dispose();
+		string introMusic = ScriptManager.GetIntroMusic();
+		Music = introMusic != null ? GetMusicClip(introMusic) : null;
 		cameraFollow.GetComponent<Camera>().enabled = true;
 		startTime = Time.time;
 		animationTimeOffset = 0f;
@@ -317,10 +319,9 @@ public class World : MonoBehaviour
 		if (!_startedFadeIn)
 		{
 			_startedFadeIn = true;
-			if (_world.Music != null)
-			{
-				PlayMusic();
-			}
+			// Select this level's track before HUD resume can restore the menu.
+			// A level without music must also stop the previous scene's track.
+			PlayMusic();
 			StartCoroutine(DoFadeIn());
 		}
 	}
@@ -512,7 +513,9 @@ public class World : MonoBehaviour
 
 	public static void ResumeMusic()
 	{
-		if (!Audio.IsMusicMuted && !Audio.ResumeMusic(1.5f, -1f))
+		if (Audio.IsMusicMuted) return;
+		if (_world.Music == null || !Audio.IsSameSoundPlaying("_music_", _world.Music)
+			|| !Audio.ResumeMusic(1.5f, -1f))
 		{
 			PlayMusic();
 		}

@@ -317,7 +317,8 @@ public class World : MonoBehaviour
 
 	public static void ResumeMusic()
 	{
-		if (!Audio.IsMusicMuted && !Audio.ResumeMusic(1.5f))
+		if (Audio.IsMusicMuted) return;
+		if (!Audio.IsSameSoundPlaying("_music_", _world.Music) || !Audio.ResumeMusic(1.5f))
 		{
 			PlayMusic();
 		}
